@@ -5,9 +5,13 @@ from django.contrib.auth import (
     get_user_model,
 )
 
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
 
 from ..models import UserProfile
 
@@ -81,6 +85,54 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             data[k] = v
 
         return data
+
+
+class ResetPasswordEmailSerializer(serializers.Serializer):
+    """Serializer for reset password with send email."""
+    email = serializers.EmailField(max_length=100)
+
+    class Meta:
+        fields = ('email',)
+
+
+class SetNewPasswordSerializer(serializers.Serializer):
+    """Serializer for set new password for user."""
+    password = serializers.CharField(
+        min_length=8, max_length=68, write_only=True)
+    password2 = serializers.CharField(
+        min_length=8, max_length=68, write_only=True)
+    token = serializers.CharField(write_only=True)
+    uidb64 = serializers.CharField(write_only=True)
+
+    class Meta:
+        fields = ('password', 'password2', 'token', 'uidb64')
+
+    def validate(self, attrs):
+        password = attrs.get('password')
+        password2 = attrs.get('password2')
+
+        if password != password2:
+            raise serializers.ValidationError(
+                {'error': 'P1 and P2 should be same.'})
+
+        try:
+
+            token = attrs.get('token')
+            uidb64 = attrs.get('uidb64')
+
+            id = force_str(urlsafe_base64_decode(uidb64))
+            user = get_user_model().objects.get(id=id)
+
+            if not PasswordResetTokenGenerator().check_token(user, token):
+                raise AuthenticationFailed('The reset link is invalid.', 401)
+
+            user.set_password(password)
+            user.save()
+
+        except Exception:
+            raise AuthenticationFailed(
+                'The reset link is invalid. exeption', 401)
+        return super().validate(attrs)
 
 
 class UserSerializer(serializers.ModelSerializer):
