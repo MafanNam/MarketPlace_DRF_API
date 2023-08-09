@@ -1,0 +1,93 @@
+"""
+Serializers for the user API View.
+"""
+from django.contrib.auth import (
+    get_user_model,
+)
+
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from rest_framework import serializers
+
+from ..models import UserProfile
+
+
+class RegistrationUserSerializer(serializers.ModelSerializer):
+    """Registration user Serializer for the user objects."""
+    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+
+    class Meta:
+        model = get_user_model()
+        fields = ('first_name', 'last_name', 'username', 'email',
+                  'password', 'password2', 'phone_number')
+        extra_kwargs = {'password': {'write_only': True, 'min_length': 8}}
+
+    def save(self, **kwargs):
+        """Save user and check valid password"""
+        password = self.validated_data['password']
+        password2 = self.validated_data['password2']
+
+        if password != password2:
+            raise serializers.ValidationError({'error': 'P1 and P2 should be same.'})
+
+        if get_user_model().objects.filter(email=self.validated_data['email']).exists():
+            raise serializers.ValidationError({'error': 'Email already exists.'})
+
+        user = get_user_model().objects.create_user(
+            email=self.validated_data['email'], password=password,
+            username=self.validated_data['username'],
+            first_name=self.validated_data['first_name'],
+            last_name=self.validated_data['last_name'],
+            phone_number=self.validated_data['phone_number'])
+        user.set_password(password)
+        user.save()
+
+        return user
+
+    def create(self, validated_data):
+        """Create and return a user with encrypted password."""
+        return get_user_model().objects.create_user(**validated_data)
+
+    def update(self, instance, validated_data):
+        """Update and return user."""
+        password = validated_data.pop('password', None)
+        user = super().update(instance, validated_data)
+
+        if password:
+            user.set_password(password)
+            user.save()
+
+        return user
+
+
+class LoginUserSerializerWithToken(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ('email', 'username')
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        serializer = LoginUserSerializerWithToken(self.user).data
+        for k, v in serializer.items():
+            data[k] = v
+
+        return data
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ('id', 'first_name', 'last_name', 'username', 'email',
+                  'phone_number', 'role', 'is_active')
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False)
+
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
