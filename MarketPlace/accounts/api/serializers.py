@@ -5,7 +5,6 @@ from django.contrib.auth import (
     get_user_model,
 )
 
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from rest_framework import serializers
@@ -13,9 +12,12 @@ from rest_framework import serializers
 from ..models import UserProfile
 
 
-class RegistrationUserSerializer(serializers.ModelSerializer):
+class RegisterUserSerializer(serializers.ModelSerializer):
     """Registration user Serializer for the user objects."""
-    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+    password2 = serializers.CharField(
+        style={'input_type': 'password'},
+        write_only=True
+    )
 
     class Meta:
         model = get_user_model()
@@ -29,10 +31,13 @@ class RegistrationUserSerializer(serializers.ModelSerializer):
         password2 = self.validated_data['password2']
 
         if password != password2:
-            raise serializers.ValidationError({'error': 'P1 and P2 should be same.'})
+            raise serializers.ValidationError(
+                {'error': 'P1 and P2 should be same.'})
 
-        if get_user_model().objects.filter(email=self.validated_data['email']).exists():
-            raise serializers.ValidationError({'error': 'Email already exists.'})
+        if get_user_model().objects.filter(
+                email=self.validated_data['email']).exists():
+            raise serializers.ValidationError(
+                {'error': 'Email already exists.'})
 
         user = get_user_model().objects.create_user(
             email=self.validated_data['email'], password=password,
