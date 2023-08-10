@@ -101,6 +101,7 @@ class SetNewPasswordSerializer(serializers.Serializer):
         min_length=8, max_length=68, write_only=True)
     password2 = serializers.CharField(
         min_length=8, max_length=68, write_only=True)
+
     token = serializers.CharField(write_only=True)
     uidb64 = serializers.CharField(write_only=True)
 
@@ -140,11 +141,21 @@ class UserSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ('id', 'first_name', 'last_name', 'username', 'email',
                   'phone_number', 'role', 'is_active')
+        extra_kwargs = {'role': {'read_only': True},
+                        'is_active': {'read_only': True}}
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer(many=False)
+    user = UserSerializer(required=False)
 
     class Meta:
         model = UserProfile
         fields = '__all__'
+
+    def update(self, instance, validated_data):
+        nested_serializer = self.fields['user']
+        nested_instance = instance.user
+        nested_data = validated_data.pop('user', {})
+
+        nested_serializer.update(nested_instance, nested_data)
+        return super().update(instance, validated_data)

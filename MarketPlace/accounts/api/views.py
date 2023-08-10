@@ -3,7 +3,11 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.conf import settings
-from django.utils.encoding import smart_bytes, smart_str, DjangoUnicodeDecodeError
+from django.utils.encoding import (
+    smart_bytes,
+    smart_str,
+    DjangoUnicodeDecodeError
+)
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from rest_framework import generics, viewsets, status
@@ -17,7 +21,8 @@ import jwt
 
 from .serializers import (
     RegisterUserSerializer, MyTokenObtainPairSerializer,
-    UserSerializer, UserProfileSerializer, ResetPasswordEmailSerializer, SetNewPasswordSerializer
+    UserSerializer, UserProfileSerializer,
+    ResetPasswordEmailSerializer, SetNewPasswordSerializer
 )
 
 from ..models import UserProfile
@@ -114,7 +119,9 @@ class RequestResetPasswordEmail(generics.GenericAPIView):
 
             current_site = get_current_site(
                 request=request).domain
-            relative_link = reverse('accounts:password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})
+            relative_link = reverse(
+                'accounts:password_reset_confirm',
+                kwargs={'uidb64': uidb64, 'token': token})
             abs_url = 'http://' + current_site + relative_link
             email_body = 'Hello, \n Use link below to resset your password. \n' + abs_url
 
@@ -123,9 +130,13 @@ class RequestResetPasswordEmail(generics.GenericAPIView):
                     'to_email': user.email}
             Util.send_verification_email(data)
 
-            return Response({'success': 'We have sent you a link to resset your password.'}, status=status.HTTP_200_OK)
+            return Response(
+                {'success': 'We have sent you a link to resset your password.'},
+                status=status.HTTP_200_OK)
 
-        return Response({'error': 'User with this email is not register.'}, status=status.HTTP_200_OK)
+        return Response(
+            {'error': 'User with this email is not register.'},
+            status=status.HTTP_200_OK)
 
 
 class PasswordTokenCheckAPI(generics.GenericAPIView):
@@ -165,13 +176,10 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
             status=status.HTTP_200_OK)
 
 
-class UserProfileView(generics.RetrieveUpdateAPIView,
-                      viewsets.GenericViewSet):
+class UserProfileView(generics.RetrieveUpdateAPIView):
     """User Profile view for auth user"""
-    queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        pk = self.kwargs['pk']
-        return UserProfile.objects.filter(id=pk)
+    def get_object(self):
+        return UserProfile.objects.get(user=self.request.user)
