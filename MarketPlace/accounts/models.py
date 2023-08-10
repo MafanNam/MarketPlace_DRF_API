@@ -54,9 +54,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50, unique=True)
-    email = models.EmailField(_("email address"), max_length=100, unique=True)
+    email = models.EmailField(max_length=100, unique=True)
     phone_number = models.CharField(max_length=50, blank=True)
-    role = models.PositiveSmallIntegerField(choices=ROLE_CHOICE, default=2, blank=True, null=True)
+    role = models.PositiveSmallIntegerField(
+        choices=ROLE_CHOICE, default=2, blank=True, null=True)
 
     # required field
     is_staff = models.BooleanField(default=False)
@@ -79,11 +80,16 @@ class User(AbstractBaseUser, PermissionsMixin):
             user_role = 'Customer'
         return user_role
 
+    def get_full_name(self):
+        return f"{self.first_name.title()} {self.last_name.title()}"
+
 
 class UserProfile(models.Model):
     """UserProfile model"""
-    user = models.OneToOneField('User', on_delete=models.CASCADE, blank=True, null=True)
-    profile_image = models.ImageField(upload_to='UserProfile/profile_images', blank=True, null=True)
+    user = models.OneToOneField(
+        'User', on_delete=models.CASCADE, blank=True, null=True)
+    profile_image = models.ImageField(
+        upload_to='UserProfile/profile_images', blank=True, null=True)
     telebotId = models.CharField(max_length=255, null=True, blank=True)
     oblast = models.CharField(max_length=50, blank=True, null=True)
     city = models.CharField(max_length=30, blank=True, null=True)
@@ -93,3 +99,6 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.email
+
+    def get_full_name(self):
+        return f"{self.user.first_name.title()} {self.user.last_name.title()}"

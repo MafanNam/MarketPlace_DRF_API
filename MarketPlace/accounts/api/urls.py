@@ -10,14 +10,28 @@ from . import views
 app_name = 'accounts'
 
 router = DefaultRouter()
-router.register('profile', views.UserProfileView)
+
 
 urlpatterns = [
     path('register/', views.RegisterUserView.as_view(), name='register'),
-    path('login/', views.LoginUserWithTokenView.as_view(), name='login_with_token'),
+    path('login/', views.LoginUserWithTokenView.as_view(),
+         name='login_with_token'),
     path('user/', views.ManagerUserView.as_view(), name='user'),
 
-    path('', include(router.urls))
+    # Verification Email
+    path('email-activate/', views.VerifyEmail.as_view(),
+         name='email_activate'),
 
-    # path('profile/', views.UserProfileView.as_view(), name='profile')
+    # Resset Password
+    path('password-resset-request/', views.RequestResetPasswordEmail.as_view(),
+         name='request_resset_password'),
+    path('password-reset/<uidb64>/<token>/',
+         views.PasswordTokenCheckAPI.as_view(),
+         name='password_reset_confirm'),
+    path('password-reset-complete/', views.SetNewPasswordAPIView.as_view(),
+         name='password_reset_complete'),
+
+    # Profile
+    path('profile/', views.UserProfileView.as_view(), name='profile')
+    # path('', include(router.urls))
 ]
