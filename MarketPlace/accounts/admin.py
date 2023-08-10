@@ -10,7 +10,7 @@ class UserAdmin(UserAdmin):
     """Define the admin pages for users."""
     model = User
     list_display = (
-        "email", "first_name", "last_name", "is_active", "is_staff",)
+        "email", "first_name", "last_name", 'role', "is_active", "is_staff",)
     list_filter = ("email", "is_staff", "is_active", "role")
     fieldsets = (
         (None, {"fields": ("email", "password", "first_name",
@@ -33,4 +33,9 @@ class UserAdmin(UserAdmin):
     ordering = ("email",)
 
 
-admin.site.register(UserProfile)
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'telebotId', 'oblast', 'created_at')
+    list_filter = ('user', 'created_at')
+    search_fields = ('user', 'oblast', 'city')
+    ordering = ('user', 'created_at')

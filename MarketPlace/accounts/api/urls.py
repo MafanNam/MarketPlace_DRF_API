@@ -16,6 +16,8 @@ urlpatterns = [
     path('register/', views.RegisterUserView.as_view(), name='register'),
     path('login/', views.LoginUserWithTokenView.as_view(),
          name='login_with_token'),
+    path('logout/', views.LogOutUserAPIView.as_view(),
+         name='logout_with_token'),
     path('user/', views.ManagerUserView.as_view(), name='user'),
 
     # Verification Email
