@@ -25,11 +25,12 @@ import jwt
 from .serializers import (
     RegisterUserSerializer, MyTokenObtainPairSerializer,
     UserSerializer, UserProfileSerializer,
-    ResetPasswordEmailSerializer, SetNewPasswordSerializer, LogOutUserSerializer, EmailVerificationSerializer,
-    PasswordTokenCheckSerializer
+    ResetPasswordEmailSerializer, SetNewPasswordSerializer,
+    LogOutUserSerializer, EmailVerificationSerializer,
+    PasswordTokenCheckSerializer, SellerShopProfileSerializer
 )
 
-from ..models import UserProfile
+from ..models import UserProfile, SellerShop
 
 from .utils import Util
 
@@ -47,6 +48,39 @@ class RegisterUserView(generics.GenericAPIView):
         user_data = serializer.data
 
         user = get_user_model().objects.get(email=user_data['email'])
+
+        token = RefreshToken.for_user(user).access_token
+
+        current_site = get_current_site(request).domain
+        relative_link = reverse('accounts:email_activate')
+        abs_url = 'http://' + current_site + relative_link + \
+                  '?token=' + str(token)
+        email_body = 'Hi ' + user.get_full_name() + \
+                     ' Use link below to verify your email. \n' + abs_url
+
+        data = {'email_body': email_body,
+                'email_subject': 'Verify your email',
+                'to_email': user.email}
+        Util.send_verification_email(data)
+
+        return Response(user_data, status=status.HTTP_201_CREATED)
+
+
+class RegisterSellerShopView(generics.GenericAPIView):
+    """Create(register) a new Seller Shop user in the system."""
+    serializer_class = RegisterUserSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        user = request.data
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user_data = serializer.data
+
+        user = get_user_model().objects.get(email=user_data['email'])
+        user.role = 1
+        user.save()
 
         token = RefreshToken.for_user(user).access_token
 
@@ -219,3 +253,12 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return UserProfile.objects.get(user=self.request.user)
+
+
+class SellerShopProfileView(generics.RetrieveUpdateAPIView):
+    """User Profile view for auth user"""
+    serializer_class = SellerShopProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return SellerShop.objects.get(owner=self.request.user)

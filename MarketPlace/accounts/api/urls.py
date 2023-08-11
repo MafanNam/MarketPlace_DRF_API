@@ -11,13 +11,17 @@ app_name = 'accounts'
 
 router = DefaultRouter()
 
-
 urlpatterns = [
+    # Auth
     path('register/', views.RegisterUserView.as_view(), name='register'),
+    path('register-seller-shop/', views.RegisterSellerShopView.as_view(),
+         name='register_seller_shop'),
     path('login/', views.LoginUserWithTokenView.as_view(),
          name='login_with_token'),
     path('logout/', views.LogOutUserAPIView.as_view(),
          name='logout_with_token'),
+
+    # User
     path('user/', views.ManagerUserView.as_view(), name='user'),
 
     # Verification Email
@@ -34,6 +38,11 @@ urlpatterns = [
          name='password_reset_complete'),
 
     # Profile
-    path('profile/', views.UserProfileView.as_view(), name='profile')
+    path('profile/', views.UserProfileView.as_view(), name='profile'),
+
+    # Seller Shop
+    path('seller-shop-profile/', views.SellerShopProfileView.as_view(),
+         name='seller_shop_profile')
+
     # path('', include(router.urls))
 ]

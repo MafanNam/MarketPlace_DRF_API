@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import User, UserProfile
+from .models import User, UserProfile, SellerShop
 
 
 # Register your models here.
@@ -39,3 +39,11 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_filter = ('user', 'created_at')
     search_fields = ('user', 'oblast', 'city')
     ordering = ('user', 'created_at')
+
+
+@admin.register(SellerShop)
+class SellerShopAdmin(admin.ModelAdmin):
+    list_display = ('owner', 'shop_name', 'phone_number', 'created_at')
+    list_filter = ('owner', 'created_at')
+    search_fields = ('owner', 'shop_name', 'phone_number')
+    ordering = ('owner', 'created_at')

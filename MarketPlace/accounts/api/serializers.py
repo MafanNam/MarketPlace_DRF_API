@@ -15,7 +15,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from ..models import UserProfile
+from ..models import UserProfile, SellerShop
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -192,3 +192,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         nested_serializer.update(nested_instance, nested_data)
         return super().update(instance, validated_data)
+
+
+class SellerShopProfileSerializer(serializers.ModelSerializer):
+    owner = serializers.EmailField()
+
+    class Meta:
+        model = SellerShop
+        fields = '__all__'
+
+    def get_owner(self, obj):
+        return get_user_model().objects.get(id=obj.id)
