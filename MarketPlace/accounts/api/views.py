@@ -27,7 +27,7 @@ from .serializers import (
     UserSerializer, UserProfileSerializer,
     ResetPasswordEmailSerializer, SetNewPasswordSerializer,
     LogOutUserSerializer, EmailVerificationSerializer,
-    PasswordTokenCheckSerializer, SellerShopProfileSerializer
+    PasswordTokenCheckSerializer, SellerShopProfileSerializer, RegisterSellerShopUserSerializer
 )
 
 from ..models import UserProfile, SellerShop
@@ -66,37 +66,9 @@ class RegisterUserView(generics.GenericAPIView):
         return Response(user_data, status=status.HTTP_201_CREATED)
 
 
-class RegisterSellerShopView(generics.GenericAPIView):
+class RegisterSellerShopView(RegisterUserView):
     """Create(register) a new Seller Shop user in the system."""
-    serializer_class = RegisterUserSerializer
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
-        user = request.data
-        serializer = self.serializer_class(data=user)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        user_data = serializer.data
-
-        user = get_user_model().objects.get(email=user_data['email'])
-        user.role = 1
-        user.save()
-
-        token = RefreshToken.for_user(user).access_token
-
-        current_site = get_current_site(request).domain
-        relative_link = reverse('accounts:email_activate')
-        abs_url = 'http://' + current_site + relative_link + \
-                  '?token=' + str(token)
-        email_body = 'Hi ' + user.get_full_name() + \
-                     ' Use link below to verify your email. \n' + abs_url
-
-        data = {'email_body': email_body,
-                'email_subject': 'Verify your email',
-                'to_email': user.email}
-        Util.send_verification_email(data)
-
-        return Response(user_data, status=status.HTTP_201_CREATED)
+    serializer_class = RegisterSellerShopUserSerializer
 
 
 class VerifyEmail(APIView):

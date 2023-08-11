@@ -72,6 +72,35 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         return user
 
 
+class RegisterSellerShopUserSerializer(RegisterUserSerializer):
+
+    def save(self, **kwargs):
+        """Save user and check valid password"""
+        password = self.validated_data['password']
+        password2 = self.validated_data['password2']
+
+        if password != password2:
+            raise serializers.ValidationError(
+                {'error': 'P1 and P2 should be same.'})
+
+        if get_user_model().objects.filter(
+                email=self.validated_data['email']).exists():
+            raise serializers.ValidationError(
+                {'error': 'Email already exists.'})
+
+        user = get_user_model().objects.create_user(
+            email=self.validated_data['email'], password=password,
+            username=self.validated_data['username'],
+            first_name=self.validated_data['first_name'],
+            last_name=self.validated_data['last_name'],
+            phone_number=self.validated_data['phone_number'],
+            role=1)
+        user.set_password(password)
+        user.save()
+
+        return user
+
+
 class EmailVerificationSerializer(serializers.Serializer):
     token = serializers.CharField(max_length=555)
 
