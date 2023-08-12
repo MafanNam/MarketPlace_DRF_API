@@ -4,8 +4,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.conf import settings
 from django.utils.encoding import (
-    smart_bytes,
-    smart_str,
+    smart_bytes, smart_str,
     DjangoUnicodeDecodeError
 )
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -18,20 +17,16 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 import jwt
 
 from .serializers import (
-    RegisterUserSerializer, MyTokenObtainPairSerializer,
-    UserSerializer, UserProfileSerializer,
+    RegisterUserSerializer, UserSerializer, UserProfileSerializer,
     ResetPasswordEmailSerializer, SetNewPasswordSerializer,
-    LogOutUserSerializer, EmailVerificationSerializer,
-    PasswordTokenCheckSerializer, SellerShopProfileSerializer, RegisterSellerShopUserSerializer
+    EmailVerificationSerializer, PasswordTokenCheckSerializer,
+    SellerShopProfileSerializer, RegisterSellerShopUserSerializer,
 )
-
 from ..models import UserProfile, SellerShop
-
 from .utils import Util
 
 
@@ -101,29 +96,6 @@ class VerifyEmail(APIView):
         except jwt.exceptions.DecodeError:
             return Response({'error': 'Invalid Token.'},
                             status=status.HTTP_400_BAD_REQUEST)
-
-
-class LoginUserWithTokenView(TokenObtainPairView):
-    """Login user with jwt token"""
-    serializer_class = MyTokenObtainPairSerializer
-
-
-class LogOutUserAPIView(generics.GenericAPIView):
-    """
-    Added refresh token in blacklist and after 5 minutes
-    access token became not valid
-    """
-    serializer_class = LogOutUserSerializer
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(
-            {'message': 'Refresh token added in blacklist.'},
-            status=status.HTTP_200_OK)
 
 
 class ManagerUserView(generics.RetrieveUpdateDestroyAPIView):

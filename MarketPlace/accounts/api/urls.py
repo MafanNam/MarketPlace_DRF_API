@@ -4,6 +4,11 @@ URL mappings for the user API.
 from django.urls import path, include
 
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenBlacklistView,
+)
 
 from . import views
 
@@ -16,10 +21,9 @@ urlpatterns = [
     path('register/', views.RegisterUserView.as_view(), name='register'),
     path('register-seller-shop/', views.RegisterSellerShopView.as_view(),
          name='register_seller_shop'),
-    path('login/', views.LoginUserWithTokenView.as_view(),
-         name='login_with_token'),
-    path('logout/', views.LogOutUserAPIView.as_view(),
-         name='logout_with_token'),
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/blacklist/', TokenBlacklistView.as_view(), name='token_blacklist'),
 
     # User
     path('user/', views.ManagerUserView.as_view(), name='user'),
