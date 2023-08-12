@@ -12,7 +12,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from drf_spectacular.utils import extend_schema
 from drf_spectacular import openapi
 
-from rest_framework import generics, viewsets, status
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
