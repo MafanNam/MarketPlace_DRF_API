@@ -196,7 +196,8 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return UserProfile.objects.get(user=self.request.user)
+        return UserProfile.objects.all().select_related('user').get(
+            user=self.request.user)
 
 
 class SellerShopProfileView(generics.RetrieveUpdateAPIView):
@@ -205,4 +206,5 @@ class SellerShopProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return SellerShop.objects.get(owner=self.request.user)
+        return SellerShop.objects.all().select_related('owner').get(
+            owner=self.request.user)

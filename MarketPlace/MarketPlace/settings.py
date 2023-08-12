@@ -28,6 +28,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+INTERNAL_IPS = ('127.0.0.1', '0.0.0.0', 'localhost',)
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -39,12 +41,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # additional
+    "debug_toolbar",
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',
 
     # my app
     'accounts',
+    'store',
 ]
 
 MIDDLEWARE = [
@@ -55,6 +59,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # additional
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'MarketPlace.urls'

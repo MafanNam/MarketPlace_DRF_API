@@ -184,11 +184,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class SellerShopProfileSerializer(serializers.ModelSerializer):
-    owner = serializers.EmailField()
+    owner = serializers.EmailField(source='owner.email')
 
     class Meta:
         model = SellerShop
         fields = '__all__'
-
-    def get_owner(self, obj):
-        return get_user_model().objects.get(id=obj.id)
