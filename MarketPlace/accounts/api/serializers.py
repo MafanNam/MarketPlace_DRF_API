@@ -8,12 +8,9 @@ from django.contrib.auth import (
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
-from rest_framework_simplejwt.exceptions import TokenError
 
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from ..models import UserProfile, SellerShop
 
@@ -110,43 +107,6 @@ class EmailVerificationSerializer(serializers.Serializer):
 
 class PasswordTokenCheckSerializer(EmailVerificationSerializer):
     uidb64 = serializers.CharField(max_length=20)
-
-
-class LoginUserSerializerWithToken(serializers.ModelSerializer):
-    class Meta:
-        model = get_user_model()
-        fields = ('email', 'username')
-
-
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs):
-        data = super().validate(attrs)
-
-        serializer = LoginUserSerializerWithToken(self.user).data
-        for k, v in serializer.items():
-            data[k] = v
-
-        return data
-
-
-class LogOutUserSerializer(serializers.Serializer):
-    """Serializer for make access token not valid."""
-    refresh = serializers.CharField()
-
-    default_error_messages = {'bad_token': ('Token is expired or invalid.',)}
-
-    def validate(self, attrs):
-        self.token = attrs['refresh']
-
-        return attrs
-
-    def save(self, **kwargs):
-        try:
-            token = RefreshToken(self.token)
-            token.blacklist()
-
-        except TokenError:
-            return self.fail('bad_token')
 
 
 class ResetPasswordEmailSerializer(serializers.Serializer):
