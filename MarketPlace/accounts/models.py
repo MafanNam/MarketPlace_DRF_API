@@ -1,6 +1,7 @@
 """
 Create models for User
 """
+import os
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -59,7 +60,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.PositiveSmallIntegerField(
         choices=ROLE_CHOICE, default=2, blank=True, null=True)
 
-    # required field
+    # additional fields
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(_('active'), default=False)
     date_joined = models.DateTimeField(default=timezone.now)
@@ -84,16 +85,25 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{self.first_name.title()} {self.last_name.title()}"
 
 
+def get_upload_path_profile(instance, filename):
+    return os.path.join(
+        "UserProfile", "user_%d" % instance.user.id,
+        "profile_images", filename)
+
+
 class UserProfile(models.Model):
     """UserProfile model"""
     user = models.OneToOneField(
         'User', on_delete=models.CASCADE, blank=True, null=True)
     profile_image = models.ImageField(
-        upload_to='UserProfile/profile_images', blank=True, null=True)
+        upload_to=get_upload_path_profile,
+        default='static/images/default/default_profile.png')
     telebotId = models.CharField(max_length=255, null=True, blank=True)
     oblast = models.CharField(max_length=50, blank=True, null=True)
     city = models.CharField(max_length=30, blank=True, null=True)
     depart_num = models.CharField(max_length=20, blank=True, null=True)
+
+    # additional fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -102,3 +112,27 @@ class UserProfile(models.Model):
 
     def get_full_name(self):
         return f"{self.user.first_name.title()} {self.user.last_name.title()}"
+
+
+def get_upload_path_seller_shop(instance, filename):
+    return os.path.join(
+        "SellerShops", "owner_%d" % instance.owner.id, "shop_images", filename)
+
+
+class SellerShop(models.Model):
+    """Seller shop model for user who have role Seller(1)"""
+    owner = models.OneToOneField(
+        'User', on_delete=models.CASCADE, blank=True, null=True
+    )
+    shop_name = models.CharField(max_length=100, unique=True)
+    shop_image = models.ImageField(upload_to=get_upload_path_seller_shop)
+    description = models.TextField(max_length=500, blank=True)
+    phone_number = models.CharField(max_length=50, unique=True)
+    email = models.EmailField(max_length=100, unique=True)
+
+    # additional fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.shop_name

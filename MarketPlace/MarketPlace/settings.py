@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     # additional
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',
 
     # my app
@@ -144,16 +145,19 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     'TITLE': 'MarketPlace Project API',
     'DESCRIPTION': 'Shop MarketPlace',
-    'VERSION': '0.0.0',
+    'VERSION': '0.0.2',
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': r'/api/',
 }
 
 # JWT TOKEN
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
 }
 
 # EMAIL conf
@@ -163,6 +167,3 @@ EMAIL_HOST = config('EMAIL_HOST')
 EMAIL_PORT = config('EMAIL_PORT', cast=int)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-
-
-

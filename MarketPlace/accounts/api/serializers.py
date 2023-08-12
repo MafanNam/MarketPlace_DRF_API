@@ -8,12 +8,14 @@ from django.contrib.auth import (
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
+from rest_framework_simplejwt.exceptions import TokenError
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from ..models import UserProfile
+from ..models import UserProfile, SellerShop
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -70,6 +72,46 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         return user
 
 
+class RegisterSellerShopUserSerializer(RegisterUserSerializer):
+
+    def save(self, **kwargs):
+        """Save user and check valid password"""
+        password = self.validated_data['password']
+        password2 = self.validated_data['password2']
+
+        if password != password2:
+            raise serializers.ValidationError(
+                {'error': 'P1 and P2 should be same.'})
+
+        if get_user_model().objects.filter(
+                email=self.validated_data['email']).exists():
+            raise serializers.ValidationError(
+                {'error': 'Email already exists.'})
+
+        user = get_user_model().objects.create_user(
+            email=self.validated_data['email'], password=password,
+            username=self.validated_data['username'],
+            first_name=self.validated_data['first_name'],
+            last_name=self.validated_data['last_name'],
+            phone_number=self.validated_data['phone_number'],
+            role=1)
+        user.set_password(password)
+        user.save()
+
+        return user
+
+
+class EmailVerificationSerializer(serializers.Serializer):
+    token = serializers.CharField(max_length=555)
+
+    class Meta:
+        fields = ('token',)
+
+
+class PasswordTokenCheckSerializer(EmailVerificationSerializer):
+    uidb64 = serializers.CharField(max_length=20)
+
+
 class LoginUserSerializerWithToken(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
@@ -85,6 +127,26 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             data[k] = v
 
         return data
+
+
+class LogOutUserSerializer(serializers.Serializer):
+    """Serializer for make access token not valid."""
+    refresh = serializers.CharField()
+
+    default_error_messages = {'bad_token': ('Token is expired or invalid.',)}
+
+    def validate(self, attrs):
+        self.token = attrs['refresh']
+
+        return attrs
+
+    def save(self, **kwargs):
+        try:
+            token = RefreshToken(self.token)
+            token.blacklist()
+
+        except TokenError:
+            return self.fail('bad_token')
 
 
 class ResetPasswordEmailSerializer(serializers.Serializer):
@@ -159,3 +221,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         nested_serializer.update(nested_instance, nested_data)
         return super().update(instance, validated_data)
+
+
+class SellerShopProfileSerializer(serializers.ModelSerializer):
+    owner = serializers.EmailField()
+
+    class Meta:
+        model = SellerShop
+        fields = '__all__'
+
+    def get_owner(self, obj):
+        return get_user_model().objects.get(id=obj.id)

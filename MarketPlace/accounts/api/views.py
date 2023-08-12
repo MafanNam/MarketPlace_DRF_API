@@ -10,22 +10,27 @@ from django.utils.encoding import (
 )
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
+from drf_spectacular.utils import extend_schema
+from drf_spectacular import openapi
+
 from rest_framework import generics, viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-
 import jwt
 
 from .serializers import (
     RegisterUserSerializer, MyTokenObtainPairSerializer,
     UserSerializer, UserProfileSerializer,
-    ResetPasswordEmailSerializer, SetNewPasswordSerializer
+    ResetPasswordEmailSerializer, SetNewPasswordSerializer,
+    LogOutUserSerializer, EmailVerificationSerializer,
+    PasswordTokenCheckSerializer, SellerShopProfileSerializer, RegisterSellerShopUserSerializer
 )
 
-from ..models import UserProfile
+from ..models import UserProfile, SellerShop
 
 from .utils import Util
 
@@ -61,9 +66,19 @@ class RegisterUserView(generics.GenericAPIView):
         return Response(user_data, status=status.HTTP_201_CREATED)
 
 
-class VerifyEmail(generics.GenericAPIView):
-    """Activate user with send email jwt token link"""
+class RegisterSellerShopView(RegisterUserView):
+    """Create(register) a new Seller Shop user in the system."""
+    serializer_class = RegisterSellerShopUserSerializer
 
+
+class VerifyEmail(APIView):
+    """Activate user with send email jwt token link"""
+    serializer_class = EmailVerificationSerializer
+
+    token_param_config = openapi.OpenApiParameter(
+        'token', openapi.OpenApiTypes.STR)
+
+    @extend_schema(parameters=[token_param_config])
     def get(self, request):
         token = request.GET.get('token')
 
@@ -91,6 +106,24 @@ class VerifyEmail(generics.GenericAPIView):
 class LoginUserWithTokenView(TokenObtainPairView):
     """Login user with jwt token"""
     serializer_class = MyTokenObtainPairSerializer
+
+
+class LogOutUserAPIView(generics.GenericAPIView):
+    """
+    Added refresh token in blacklist and after 5 minutes
+    access token became not valid
+    """
+    serializer_class = LogOutUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            {'message': 'Refresh token added in blacklist.'},
+            status=status.HTTP_200_OK)
 
 
 class ManagerUserView(generics.RetrieveUpdateDestroyAPIView):
@@ -141,7 +174,16 @@ class RequestResetPasswordEmail(generics.GenericAPIView):
 
 class PasswordTokenCheckAPI(generics.GenericAPIView):
     """Check password valid token"""
+    serializer_class = PasswordTokenCheckSerializer
 
+    token_param_config = openapi.OpenApiParameter(
+        'token', openapi.OpenApiTypes.STR,
+        openapi.OpenApiParameter.PATH)
+    uidb64_param_config = openapi.OpenApiParameter(
+        'uidb64', openapi.OpenApiTypes.STR,
+        openapi.OpenApiParameter.PATH)
+
+    @extend_schema(parameters=[token_param_config, uidb64_param_config])
     def get(self, request, uidb64, token):
         try:
             id = smart_str(urlsafe_base64_decode(uidb64))
@@ -183,3 +225,12 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return UserProfile.objects.get(user=self.request.user)
+
+
+class SellerShopProfileView(generics.RetrieveUpdateAPIView):
+    """User Profile view for auth user"""
+    serializer_class = SellerShopProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return SellerShop.objects.get(owner=self.request.user)

@@ -14,6 +14,7 @@ from ..models import UserProfile
 fake = Faker()
 
 PROFILE_URL = reverse('accounts:profile')
+SELLER_SHOP_URL = reverse('accounts:seller_shop_profile')
 
 
 def create_user(first_name='test_first', last_name='test_last',
@@ -93,6 +94,11 @@ class PublicUserApiTests(TestSetUp):
 
     def test_user_profile_retrieve_unauthorized(self):
         res = self.client.get(PROFILE_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_seller_shop_profile_retrieve_unauthorized(self):
+        res = self.client.get(SELLER_SHOP_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
