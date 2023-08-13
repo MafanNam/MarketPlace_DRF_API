@@ -1,4 +1,4 @@
-from rest_framework import generics, viewsets
+from rest_framework import generics, viewsets, status
 from rest_framework.response import Response
 
 from store.api.serializers import ProductSerializer, ProductDetailSerializer
@@ -15,14 +15,19 @@ class ProductAPIView(viewsets.GenericViewSet):
             return ProductSerializer
         elif self.action == 'list-detail':
             return ProductDetailSerializer
+        else:
+            return ProductDetailSerializer
 
     def retrieve(self, request, slug=None):
-        serializer = ProductDetailSerializer(
-            self.queryset.get(slug=slug), many=False)
+        try:
+            serializer = ProductDetailSerializer(
+                self.queryset.get(slug=slug), many=False)
 
-        data = Response(serializer.data)
+            data = Response(serializer.data)
 
-        return data
+            return data
+        except Product.DoesNotExist:
+            return Response({'error': 'Product with this slug does not exist.'}, status=status.HTTP_404_NOT_FOUND)
 
     def list(self, request):
         serializer = self.serializer_class(self.queryset, many=True)
