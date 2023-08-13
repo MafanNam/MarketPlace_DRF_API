@@ -68,7 +68,7 @@ class ProductLineAdmin(admin.ModelAdmin):
 
 @admin.register(ProductLineImage)
 class ProductLineImageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_main_image', 'url_image',)
+    list_display = ('name', 'product_line', 'is_main_image', 'url_image',)
     list_editable = ('is_main_image',)
 
 

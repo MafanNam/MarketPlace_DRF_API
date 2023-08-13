@@ -125,6 +125,7 @@ class SellerShop(models.Model):
         'User', on_delete=models.CASCADE, blank=True, null=True
     )
     shop_name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(db_index=True)
     shop_image = models.ImageField(upload_to=get_upload_path_seller_shop)
     description = models.TextField(max_length=500, blank=True)
     phone_number = models.CharField(max_length=50, unique=True)

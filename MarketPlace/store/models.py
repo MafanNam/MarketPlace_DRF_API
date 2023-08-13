@@ -5,12 +5,17 @@ from django.db import models
 from accounts.models import SellerShop
 
 
+class ManagerQuerySet(models.QuerySet):
+    def is_available(self):
+        return self.filter(is_available=True)
+
+
 # PRODUCT AND ADDONS
 
 class Product(models.Model):
     """Product model."""
     product_name = models.CharField(max_length=255)
-    slug = models.SlugField()
+    slug = models.SlugField(db_index=True)
     description = models.TextField(max_length=500, blank=True)
     category = models.ForeignKey(
         'Category', on_delete=models.SET('non category'), blank=True)
@@ -24,6 +29,8 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    objects = ManagerQuerySet.as_manager()
+
     def __str__(self):
         return self.product_name
 
@@ -31,7 +38,7 @@ class Product(models.Model):
 class Category(models.Model):
     """Category model for products."""
     category_name = models.CharField(max_length=50, unique=True)
-    slug = models.SlugField()
+    slug = models.SlugField(db_index=True)
     description = models.TextField(max_length=255, blank=True)
 
     class Meta:
@@ -44,7 +51,7 @@ class Category(models.Model):
 class Brand(models.Model):
     """Brand model for products."""
     brand_name = models.CharField(max_length=50, unique=True)
-    slug = models.SlugField()
+    slug = models.SlugField(db_index=True)
     description = models.TextField(max_length=500, blank=True)
 
     def __str__(self):
@@ -55,7 +62,7 @@ class Brand(models.Model):
 
 class ProductLine(models.Model):
     """Product line for Product."""
-    article = models.CharField(max_length=50, unique=True)
+    article = models.CharField(max_length=50, unique=True, db_index=True)
     price_new = models.PositiveIntegerField()
     price_old = models.PositiveIntegerField(blank=True)
     stock_qty = models.PositiveIntegerField()
@@ -67,6 +74,8 @@ class ProductLine(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    objects = ManagerQuerySet.as_manager()
+
     def __str__(self):
         return f"{self.product} - {self.attribute_value}"
 
@@ -76,7 +85,9 @@ class ProductLine(models.Model):
 
 def get_upload_path_product_line(instance, filename):
     return os.path.join(
-        "SellerShops", "%d" % instance.prodict_line.product.product_name,
+        "SellerShops",
+        "owner_%d" % instance.product_line.product.seller_shop.owner.id,
+        "Products", instance.product_line.product.product_name,
         "product_line_images", filename)
 
 
@@ -87,6 +98,9 @@ class ProductLineImage(models.Model):
     url_image = models.ImageField(upload_to=get_upload_path_product_line)
     product_line = models.ForeignKey('ProductLine', on_delete=models.CASCADE)
     is_main_image = models.BooleanField(default=False)
+
+    # additional fields
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return str(self.url_image)

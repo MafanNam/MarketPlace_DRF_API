@@ -184,8 +184,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class SellerShopProfileSerializer(serializers.ModelSerializer):
-    owner = serializers.EmailField(source='owner.email')
+    owner = serializers.EmailField(source='owner.email', read_only=True)
 
     class Meta:
         model = SellerShop
-        fields = '__all__'
+        exclude = ('id',)
+        extra_kwargs = {'slug': {'read_only': True}}
