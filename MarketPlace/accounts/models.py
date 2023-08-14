@@ -94,7 +94,8 @@ def get_upload_path_profile(instance, filename):
 class UserProfile(models.Model):
     """UserProfile model"""
     user = models.OneToOneField(
-        'User', on_delete=models.CASCADE, blank=True, null=True)
+        'User', on_delete=models.CASCADE, blank=True, null=True,
+        related_name='user_profile')
     profile_image = models.ImageField(
         upload_to=get_upload_path_profile,
         default='static/images/default/default_profile.png')

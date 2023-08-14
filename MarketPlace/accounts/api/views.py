@@ -189,7 +189,7 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
             {'success': True, 'message': 'Password reset success.'},
             status=status.HTTP_200_OK)
 
-
+@extend_schema(tags=['UserProfile'])
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """User Profile view for auth user"""
     serializer_class = UserProfileSerializer
@@ -200,6 +200,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             user=self.request.user)
 
 
+@extend_schema(tags=['SellerShopProfile'])
 class SellerShopProfileView(generics.RetrieveUpdateAPIView):
     """User Profile view for auth user"""
     serializer_class = SellerShopProfileSerializer

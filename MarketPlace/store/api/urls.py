@@ -12,6 +12,8 @@ router.register(r"", views.ProductAPIView)
 urlpatterns = [
     path('<slug>/review/', views.ProductReviewAPIView.as_view(),
          name='review'),
+    path('create/', views.CreateProductAPIView.as_view(),
+         name='create_product'),
 
     path('', include(router.urls))
 ]

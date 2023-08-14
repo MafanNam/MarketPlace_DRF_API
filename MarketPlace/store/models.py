@@ -27,7 +27,7 @@ class Product(models.Model):
     link_youtube = models.URLField(blank=True)
     article = models.CharField(max_length=50, unique=True, db_index=True)
     price_new = models.PositiveIntegerField()
-    price_old = models.PositiveIntegerField(blank=True)
+    price_old = models.PositiveIntegerField(blank=True, default=0)
     stock_qty = models.PositiveIntegerField()
 
     # Rating
@@ -84,7 +84,9 @@ class ProductImage(models.Model):
     """Image for products."""
     name = models.CharField(max_length=20, blank=True)
     alternative_name = models.CharField(max_length=20, blank=True)
-    url_image = models.ImageField(upload_to=get_upload_path_product_line)
+    url_image = models.ImageField(
+        upload_to=get_upload_path_product_line,
+        default='static/images/default/default_project.png')
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     is_main_image = models.BooleanField(default=False)
 
