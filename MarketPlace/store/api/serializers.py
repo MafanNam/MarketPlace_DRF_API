@@ -1,14 +1,11 @@
-from django.db.models import Min
-
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-
 from accounts.api.serializers import SellerShopProfileSerializer
 from store.models import (
-    Category, Brand, Product, ProductLine,
-    ProductLineImage, AttributeValue, Attribute,
+    Category, Brand, Product,
+    AttributeValue, ProductImage, ReviewRating,
 )
 
 
@@ -24,63 +21,70 @@ class BrandSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class ProductLineImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductLineImage
-        exclude = ('id', 'product_line', 'updated_at',)
-
-
-class ProductLineSerializer(serializers.ModelSerializer):
-    images = serializers.SerializerMethodField()
+class AttributeValueSerializer(serializers.ModelSerializer):
+    attribute = serializers.CharField(source='attribute.name')
 
     class Meta:
-        model = ProductLine
-        exclude = ('id', 'created_at', 'updated_at', 'product',)
+        model = AttributeValue
+        exclude = ('id',)
 
-    @extend_schema_field(OpenApiTypes.STR)
-    def get_images(self, obj):
-        product_line_images = ProductLineImage.objects.filter(
-            product_line=obj).order_by('-is_main_image', '-updated_at')
-        return ProductLineImageSerializer(product_line_images, many=True).data
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        exclude = ('id', 'product', 'updated_at',)
+
+
+class ReviewRatingSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = ReviewRating
+        exclude = ('id', 'is_available', 'product')
 
 
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.CharField(source='category.category_name')
     brand = serializers.CharField(source='brand.brand_name')
-    seller_shop = serializers.CharField(source='seller_shop.shop_name')
+    seller_shop = serializers.CharField(
+        source='seller_shop.shop_name', read_only=True)
     image = serializers.SerializerMethodField()
-    price_min = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        exclude = ('id', 'description', 'link_youtube')
+        exclude = (
+            'id', 'description', 'link_youtube', 'article',
+            'stock_qty', 'created_at', 'updated_at', 'attribute_value')
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_image(self, obj):
-        product_image = ProductLineImage.objects.filter(
-            product_line__product_id=obj.id,
-            is_main_image=True).order_by('-updated_at')[0]
-        return ProductLineImageSerializer(
+        product_image = ProductImage.objects.filter(
+            product=obj, is_main_image=True).order_by('-updated_at')[0]
+        return ProductImageSerializer(
             product_image, many=False).data['url_image']
-
-    @extend_schema_field(OpenApiTypes.INT)
-    def get_price_min(self, obj):
-        product_line = ProductLine.objects.filter(product=obj).aggregate(
-            Min('price_new'))
-        return product_line['price_new__min']
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     category = serializers.CharField(source='category.category_name')
     brand = serializers.CharField(source='brand.brand_name')
-    seller_shop = SellerShopProfileSerializer(many=False)
-    product_line = serializers.SerializerMethodField()
+    seller_shop = SellerShopProfileSerializer(many=False, read_only=True)
+    attribute_value = AttributeValueSerializer(many=True)
+    images = serializers.SerializerMethodField()
+    review = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Product
-        fields = '__all__'
+        exclude = ('id',)
 
-    @extend_schema_field(ProductLineSerializer)
-    def get_product_line(self, obj):
-        product_lines = ProductLine.objects.filter(product=obj).order_by('price_new')
-        return ProductLineSerializer(product_lines, many=True).data
+    @extend_schema_field(ProductImageSerializer)
+    def get_images(self, obj):
+        product_images = ProductImage.objects.filter(
+            product=obj).order_by('-is_main_image', '-updated_at')
+        return ProductImageSerializer(product_images, many=True).data
+
+    @extend_schema_field(ReviewRatingSerializer)
+    def get_review(self, obj):
+        review = ReviewRating.objects.filter(
+            product=obj).order_by('-updated_at')
+        return ReviewRatingSerializer(review, many=True).data

@@ -1,8 +1,9 @@
 import os
 
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
-from accounts.models import SellerShop
+from accounts.models import SellerShop, User
 
 
 class ManagerQuerySet(models.QuerySet):
@@ -21,8 +22,18 @@ class Product(models.Model):
         'Category', on_delete=models.SET('non category'), blank=True)
     brand = models.ForeignKey(
         'Brand', on_delete=models.SET('non brand'), blank=True)
+    attribute_value = models.ManyToManyField('AttributeValue')
     seller_shop = models.ForeignKey(SellerShop, on_delete=models.CASCADE)
     link_youtube = models.URLField(blank=True)
+    article = models.CharField(max_length=50, unique=True, db_index=True)
+    price_new = models.PositiveIntegerField()
+    price_old = models.PositiveIntegerField(blank=True)
+    stock_qty = models.PositiveIntegerField()
+
+    # Rating
+    rating = models.DecimalField(
+        max_digits=7, decimal_places=2, null=True, blank=True)
+    numReviews = models.PositiveIntegerField(default=0, null=True, blank=True)
 
     # additional fields
     is_available = models.BooleanField(default=True)
@@ -33,6 +44,9 @@ class Product(models.Model):
 
     def __str__(self):
         return self.product_name
+
+    def get_attribute_value(self):
+        return ",".join([str(value) for value in self.attribute_value.all()])
 
 
 class Category(models.Model):
@@ -58,45 +72,20 @@ class Brand(models.Model):
         return self.brand_name
 
 
-# PRODUCT LINE AND ADDONS
-
-class ProductLine(models.Model):
-    """Product line for Product."""
-    article = models.CharField(max_length=50, unique=True, db_index=True)
-    price_new = models.PositiveIntegerField()
-    price_old = models.PositiveIntegerField(blank=True)
-    stock_qty = models.PositiveIntegerField()
-    attribute_value = models.ManyToManyField('AttributeValue')
-    product = models.ForeignKey('Product', on_delete=models.CASCADE)
-
-    # additional fields
-    is_available = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    objects = ManagerQuerySet.as_manager()
-
-    def __str__(self):
-        return f"{self.product} - {self.attribute_value}"
-
-    def get_attribute_value(self):
-        return ",".join([str(value) for value in self.attribute_value.all()])
-
-
 def get_upload_path_product_line(instance, filename):
     return os.path.join(
         "SellerShops",
-        "owner_%d" % instance.product_line.product.seller_shop.owner.id,
-        "Products", instance.product_line.product.product_name,
+        "owner_%d" % instance.product.seller_shop.owner.id,
+        "Products", instance.product.product_name,
         "product_line_images", filename)
 
 
-class ProductLineImage(models.Model):
-    """Image for product line."""
+class ProductImage(models.Model):
+    """Image for products."""
     name = models.CharField(max_length=20, blank=True)
     alternative_name = models.CharField(max_length=20, blank=True)
     url_image = models.ImageField(upload_to=get_upload_path_product_line)
-    product_line = models.ForeignKey('ProductLine', on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
     is_main_image = models.BooleanField(default=False)
 
     # additional fields
@@ -115,9 +104,27 @@ class Attribute(models.Model):
 
 
 class AttributeValue(models.Model):
-    """Attribute value for product line."""
+    """Attribute value for products."""
     value = models.CharField(max_length=50, unique=True)
     attribute = models.ForeignKey('Attribute', on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.attribute} - {self.value}"
+
+
+class ReviewRating(models.Model):
+    """Review rating model for products."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(
+        'Product', on_delete=models.CASCADE, related_name='review')
+    name = models.CharField(max_length=100)
+    rating = models.FloatField(
+        validators=[MinValueValidator(0.5), MaxValueValidator(5)])
+    comment = models.TextField(max_length=500, blank=True)
+
+    # additional fields
+    is_available = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = ManagerQuerySet.as_manager()

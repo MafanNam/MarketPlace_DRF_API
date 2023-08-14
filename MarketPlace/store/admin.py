@@ -3,8 +3,9 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from .models import (
-    Product, Category, Brand, ProductLine,
-    ProductLineImage, AttributeValue, Attribute
+    Product, Category, Brand,
+    AttributeValue, Attribute,
+    ProductImage, ReviewRating
 )
 
 
@@ -22,13 +23,8 @@ class EditLinkInLine(object):
             return ''
 
 
-class ProductLineInLine(EditLinkInLine, admin.TabularInline):
-    model = ProductLine
-    readonly_fields = ('edit',)
-
-
-class ProductLineImageInLine(admin.TabularInline):
-    model = ProductLineImage
+class ProductImageInLine(admin.TabularInline):
+    model = ProductImage
 
 
 class AttributeValueInLine(admin.TabularInline):
@@ -42,7 +38,7 @@ class ProductAdmin(admin.ModelAdmin):
     )
     list_editable = ('is_available',)
     prepopulated_fields = {'slug': ('product_name',)}
-    inlines = (ProductLineInLine,)
+    inlines = (ProductImageInLine,)
 
 
 @admin.register(Category)
@@ -57,18 +53,9 @@ class BrandAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('brand_name',)}
 
 
-@admin.register(ProductLine)
-class ProductLineAdmin(admin.ModelAdmin):
-    list_display = (
-        'product', 'article', 'price_new', 'price_old', 'stock_qty',
-        'get_attribute_value', 'is_available', 'created_at',)
-    list_editable = ('is_available',)
-    inlines = (ProductLineImageInLine,)
-
-
-@admin.register(ProductLineImage)
-class ProductLineImageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'product_line', 'is_main_image', 'url_image',)
+@admin.register(ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    list_display = ('name', 'product', 'is_main_image', 'url_image',)
     list_editable = ('is_main_image',)
 
 
@@ -80,3 +67,9 @@ class AttributeValueAdmin(admin.ModelAdmin):
 @admin.register(Attribute)
 class AttributeAdmin(admin.ModelAdmin):
     list_display = ('name',)
+
+
+@admin.register(ReviewRating)
+class ReviewRatingAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product', 'rating', 'is_available', 'created_at')
+    list_editable = ('is_available',)

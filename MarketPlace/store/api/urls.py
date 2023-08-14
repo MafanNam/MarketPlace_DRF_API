@@ -10,7 +10,8 @@ router = DefaultRouter()
 router.register(r"", views.ProductAPIView)
 
 urlpatterns = [
-    # path('', views.ProductAPIView.as_view(), name='product'),
+    path('<slug>/review/', views.ProductReviewAPIView.as_view(),
+         name='review'),
 
     path('', include(router.urls))
 ]
