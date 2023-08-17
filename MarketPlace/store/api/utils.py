@@ -29,12 +29,7 @@ def generate_article(product_name, category_name):
     return article
 
 
-def generate_slug(title: str):
-    from store.models import Product
-
-    title = slugify(title)
-
-    while Product.objects.filter(slug=title).exists():
-        title = f"{slugify(title)}-{str(uuid.uuid4())[:4]}"
+def generate_slug(title: str, pk: int):
+    title = f"{slugify(title)}-{pk}"
 
     return title

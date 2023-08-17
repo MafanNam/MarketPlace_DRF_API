@@ -69,7 +69,7 @@ class Product(models.Model):
         return ",".join([str(value) for value in self.attribute_value.all()])
 
     def save(self, *args, **kwargs):
-        self.slug = generate_slug(self.product_name)
+        self.slug = generate_slug(self.product_name, self.id)
         self.article = generate_article(
             self.product_name, self.category.category_name)
 

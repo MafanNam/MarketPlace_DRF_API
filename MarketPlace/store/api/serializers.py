@@ -109,6 +109,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
         seller_shop = SellerShop.objects.get(owner=request.user)
         validated_data['seller_shop'] = seller_shop
+        validated_data['price_old'] = validated_data['price_new']
         attribute_ids = validated_data['attribute_value']
 
         product = super().create(validated_data)
@@ -119,3 +120,11 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             ProductImage.objects.create(product=product, image=image)
 
         return product
+
+    def update(self, instance, validated_data):
+        validated_data['price_old'] = instance.price_new
+        product = super().update(instance, validated_data)
+        
+        return product
+
+

@@ -7,7 +7,7 @@ from store.api import views
 app_name = 'store'
 
 router = DefaultRouter()
-router.register(r"", views.ProductAPIView)
+router.register(r"", views.ProductAPIView, basename='product')
 
 urlpatterns = [
     path('<slug>/review/', views.ProductReviewAPIView.as_view(),

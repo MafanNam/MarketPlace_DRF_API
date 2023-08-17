@@ -24,6 +24,8 @@ urlpatterns = [
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'),
          name='redoc'),
 
+    path('api/drf-auth/', include('rest_framework.urls'))
+
 ]
 
 if settings.DEBUG:

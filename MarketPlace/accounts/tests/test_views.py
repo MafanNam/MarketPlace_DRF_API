@@ -20,12 +20,12 @@ SELLER_SHOP_URL = reverse('accounts:seller_shop_profile')
 def create_user(first_name='test_first', last_name='test_last',
                 username='tests', email='test@gmail.com',
                 password='testpass123', phone_number='+343 2424 5345',
-                is_active=False, ):
+                is_active=False, role=2):
     """Create and return a new user."""
     user = get_user_model().objects.create_user(
         first_name=first_name, last_name=last_name,
         username=username, email=email, password=password,
-        phone_number=phone_number, is_active=is_active)
+        phone_number=phone_number, is_active=is_active, role=role)
     user.save()
     return user
 

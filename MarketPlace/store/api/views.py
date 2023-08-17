@@ -1,7 +1,10 @@
 from drf_spectacular import openapi
 from drf_spectacular.utils import extend_schema
 
-from rest_framework import generics, viewsets, status, mixins, views
+from rest_framework import (
+    generics, viewsets, status,
+    mixins, views,
+)
 from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
@@ -23,7 +26,8 @@ from store.api.permissions import IsAdminOrReadOnly
 
 
 class ProductAPIView(viewsets.GenericViewSet,
-                     viewsets.mixins.UpdateModelMixin):
+                     mixins.UpdateModelMixin,
+                     mixins.DestroyModelMixin):
     queryset = Product.objects.is_available()
     lookup_field = 'slug'
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -33,7 +37,7 @@ class ProductAPIView(viewsets.GenericViewSet,
             return ProductSerializer
         elif self.action == 'retrieve':
             return ProductDetailSerializer
-        elif self.action in ['create', 'update', 'partial_update']:
+        elif self.action in ('create', 'update', 'partial_update',):
             return ProductCreateSerializer
         return ProductSerializer
 
@@ -81,7 +85,7 @@ class BrandAPIView(generics.ListAPIView):
 
 
 class AttributeValueAPIView(generics.ListAPIView):
-    queryset = AttributeValue.objects.all()
+    queryset = AttributeValue.objects.all().select_related('attribute')
     serializer_class = AttributeValueSerializer
     permission_classes = [IsAdminOrReadOnly]
 
@@ -114,8 +118,8 @@ class ProductReviewAPIView(generics.GenericAPIView):
 
         already_exists = product.review.filter(user=user).exists()
         if already_exists:
-            content = {'detail': 'Product already reviewed.'}
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Product already reviewed.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         ReviewRating.objects.create(
             user=user,
@@ -148,7 +152,8 @@ class ProductReviewAPIView(generics.GenericAPIView):
             review.save()
 
         except ReviewRating.DoesNotExist:
-            return Response({'message': 'Review does not exists.'})
+            return Response({'message': 'Review does not exists.'},
+                            status=status.HTTP_404_NOT_FOUND)
 
         update_product_review(product)
 
