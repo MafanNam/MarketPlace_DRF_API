@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     # my app
     'accounts',
     'store',
+    'addons',
 ]
 
 MIDDLEWARE = [
