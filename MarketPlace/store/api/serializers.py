@@ -88,7 +88,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         queryset=Brand.objects.all(), many=False)
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(allow_empty_file=False, use_url=False),
-        write_only=True
+        write_only=True, required=False,
     )
 
     class Meta:
@@ -105,7 +105,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get('request')
-        uploaded_images = validated_data.pop('uploaded_images')
+        uploaded_images = validated_data.pop('uploaded_images', [])
 
         seller_shop = SellerShop.objects.get(owner=request.user)
         validated_data['seller_shop'] = seller_shop

@@ -31,6 +31,7 @@ class ProductAPIView(viewsets.GenericViewSet,
     queryset = Product.objects.is_available()
     lookup_field = 'slug'
     permission_classes = [IsAuthenticatedOrReadOnly]
+    """CRUD for Product."""
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -42,12 +43,14 @@ class ProductAPIView(viewsets.GenericViewSet,
         return ProductSerializer
 
     def list(self, request):
+        """List products."""
         serializer = self.get_serializer(
             self.queryset.order_by('-created_at'), many=True)
 
         return Response(serializer.data)
 
     def retrieve(self, request, slug=None):
+        """Detail product."""
         try:
             serializer = self.get_serializer(
                 self.queryset.get(slug=slug), many=False)
@@ -61,6 +64,7 @@ class ProductAPIView(viewsets.GenericViewSet,
                 status=status.HTTP_404_NOT_FOUND)
 
     def create(self, request):
+        """Create product."""
         data = self.request.data
 
         serializer = self.get_serializer(
@@ -73,18 +77,21 @@ class ProductAPIView(viewsets.GenericViewSet,
 
 
 class CategoryAPIView(generics.ListAPIView):
+    """List Category."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
 
 
 class BrandAPIView(generics.ListAPIView):
+    """List Brand."""
     queryset = Brand.objects.all()
     serializer_class = BrandSerializer
     permission_classes = [IsAdminOrReadOnly]
 
 
 class AttributeValueAPIView(generics.ListAPIView):
+    """List AttributeValue."""
     queryset = AttributeValue.objects.all().select_related('attribute')
     serializer_class = AttributeValueSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -99,6 +106,7 @@ class ProductReviewAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, slug=None):
+        """Create review for Product."""
         user = request.user
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -134,6 +142,7 @@ class ProductReviewAPIView(generics.GenericAPIView):
         return Response('Review Added.', status=status.HTTP_201_CREATED)
 
     def patch(self, request, slug=None):
+        """Update Review for Product."""
         user = request.user
         try:
             product = Product.objects.get(slug=slug)
@@ -160,6 +169,7 @@ class ProductReviewAPIView(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, slug=None):
+        """Delete review."""
         user = request.user
 
         try:

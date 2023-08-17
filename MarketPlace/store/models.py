@@ -3,7 +3,6 @@ import os
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
-from store.api.utils import generate_slug, generate_article
 from accounts.models import SellerShop, User
 
 
@@ -33,7 +32,7 @@ class ManagerQuerySet(models.QuerySet):
 class Product(models.Model):
     """Product model."""
     product_name = models.CharField(max_length=255)
-    slug = models.SlugField(db_index=True, unique=True)
+    slug = models.SlugField(db_index=True, unique=True, )
     description = models.TextField(max_length=500, blank=True)
     image = models.ImageField(
         upload_to=get_upload_path_main_product_image,
@@ -68,12 +67,12 @@ class Product(models.Model):
     def get_attribute_value(self):
         return ",".join([str(value) for value in self.attribute_value.all()])
 
-    def save(self, *args, **kwargs):
-        self.slug = generate_slug(self.product_name, self.id)
-        self.article = generate_article(
-            self.product_name, self.category.category_name)
-
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     # self.slug = generate_slug(self.product_name)
+    #     self.article = generate_article(
+    #         self.product_name, self.category.category_name)
+    #
+    #     super().save(*args, **kwargs)
 
 
 class Category(models.Model):

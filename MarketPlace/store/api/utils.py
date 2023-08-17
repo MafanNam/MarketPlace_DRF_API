@@ -1,6 +1,8 @@
-import uuid
+import random
+import string
+import datetime
 
-from django.template.defaultfilters import slugify
+from django.utils.text import slugify
 
 
 def update_product_review(product):
@@ -20,16 +22,53 @@ def update_product_review(product):
     product.save()
 
 
-def generate_article(product_name, category_name):
+# def generate_article(product_name, category_name):
+#     category_initials = ''.join(
+#         word[0] for word in category_name.split())
+#     product_initials = product_name.replace(' ', '')[:3]
+#     article = f"{category_initials}-{product_initials}{str(uuid.uuid4())[:4]}"
+#
+#     return article
+
+
+# def generate_slug(title: str, pk: int):
+#     from store.models import Product
+#
+#     title = slugify(title)
+#
+#     if Product.objects.filter(slug=title).exists():
+#         title = f"{slugify(title)}-{str(uuid.uuid4())[:4]}"
+#
+#     return title
+
+
+def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+
+def unique_slug_generator(instance, new_slug=None):
+    if new_slug is not None:
+        slug = new_slug
+    else:
+        slug = slugify(instance.product_name)
+    Klass = instance.__class__
+    max_length = Klass._meta.get_field('slug').max_length
+    slug = slug[:max_length]
+    qs_exists = Klass.objects.filter(slug=slug).exists()
+
+    if qs_exists:
+        new_slug = "{slug}-{randstr}".format(
+            slug=slug[:max_length - 5], randstr=random_string_generator(size=4))
+
+        return unique_slug_generator(instance, new_slug=new_slug)
+    return slug
+
+
+def unique_article_generator(instance):
     category_initials = ''.join(
-        word[0] for word in category_name.split())
-    product_initials = product_name.replace(' ', '')[:3]
-    article = f"{category_initials}-{product_initials}{str(uuid.uuid4())[:4]}"
+        word[0] for word in instance.category.category_name.split())
+    product_initials = instance.product_name.replace(' ', '')[:3]
+
+    article = f"{category_initials}-{product_initials}{random_string_generator(size=6)}"
 
     return article
-
-
-def generate_slug(title: str, pk: int):
-    title = f"{slugify(title)}-{pk}"
-
-    return title

@@ -7,6 +7,8 @@ from accounts.tests.test_views import create_user, fake
 from ..models import Product, ReviewRating, AttributeValue, Category, Brand, Attribute
 from rest_framework.test import APIClient
 
+from decimal import Decimal
+
 PRODUCT_URL = reverse('store:product-list')
 
 
@@ -69,10 +71,11 @@ class PrivateStoreApiTests(TestCase):
 
     # def test_product_create(self):
     #     payload = {
-    #         'seller_shop': 1, 'product_name': 'hh',
+    #         'product_name': 'hh',
     #         'category': 1, 'brand': 1,
-    #         'attribute_value': [1],
-    #         'article': 'CD3354', 'price_new': 99, 'stock_qty': 12
+    #         'attribute_value': [{'name': 'attr1'}],
+    #         'article': 'CD3354', 'price_new': Decimal('99.55'), 'stock_qty': 12,
+    #         'image': '',
     #     }
     #     res = self.client.post(PRODUCT_URL, payload, format='json')
     #
