@@ -1,34 +1,51 @@
 from drf_spectacular import openapi
 from drf_spectacular.utils import extend_schema
+
 from rest_framework import generics, viewsets, status, mixins, views
 from rest_framework.permissions import (
     IsAuthenticated,
-    IsAuthenticatedOrReadOnly
+    IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
 
 from store.api.serializers import (
-    ProductSerializer,
-    ProductDetailSerializer,
-    ReviewRatingSerializer, ProductCreateSerializer
+    ProductSerializer, ProductDetailSerializer,
+    ReviewRatingSerializer, ProductCreateSerializer,
+    CategorySerializer, BrandSerializer,
+    AttributeValueSerializer,
 )
-from store.models import Product, ReviewRating, Category
+from store.api.utils import update_product_review
+from store.models import (
+    Product, ReviewRating, Category,
+    Brand, AttributeValue
+)
+from store.api.permissions import IsAdminOrReadOnly
 
 
-class ProductAPIView(viewsets.GenericViewSet):
+class ProductAPIView(viewsets.GenericViewSet,
+                     viewsets.mixins.UpdateModelMixin):
     queryset = Product.objects.is_available()
     lookup_field = 'slug'
-    serializer_class = ProductSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
         if self.action == 'list':
             return ProductSerializer
-        return ProductDetailSerializer
+        elif self.action == 'retrieve':
+            return ProductDetailSerializer
+        elif self.action in ['create', 'update', 'partial_update']:
+            return ProductCreateSerializer
+        return ProductSerializer
+
+    def list(self, request):
+        serializer = self.get_serializer(
+            self.queryset.order_by('-created_at'), many=True)
+
+        return Response(serializer.data)
 
     def retrieve(self, request, slug=None):
         try:
-            serializer = self.serializer_class(
+            serializer = self.get_serializer(
                 self.queryset.get(slug=slug), many=False)
 
             data = Response(serializer.data)
@@ -39,27 +56,34 @@ class ProductAPIView(viewsets.GenericViewSet):
                 {'error': 'Product with this slug does not exist.'},
                 status=status.HTTP_404_NOT_FOUND)
 
-    def list(self, request):
-        serializer = self.serializer_class(
-            self.queryset.order_by('-created_at'), many=True)
-
-        return Response(serializer.data)
-
-
-class CreateProductAPIView(generics.GenericAPIView):
-    serializer_class = ProductCreateSerializer
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
+    def create(self, request):
         data = self.request.data
 
-        serializer = self.serializer_class(
+        serializer = self.get_serializer(
             data=data, context={'request': self.request})
         serializer.is_valid(raise_exception=True)
 
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class CategoryAPIView(generics.ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminOrReadOnly]
+
+
+class BrandAPIView(generics.ListAPIView):
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+    permission_classes = [IsAdminOrReadOnly]
+
+
+class AttributeValueAPIView(generics.ListAPIView):
+    queryset = AttributeValue.objects.all()
+    serializer_class = AttributeValueSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 
 @extend_schema(
@@ -76,7 +100,17 @@ class ProductReviewAPIView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.data
 
-        product = Product.objects.get(slug=slug)
+        try:
+            product = Product.objects.get(slug=slug)
+        except Product.DoesNotExist:
+            return Response(
+                {'error': 'Product does not exists.'},
+                status=status.HTTP_404_NOT_FOUND)
+
+        if user == product.seller_shop.owner:
+            return Response(
+                {'message': 'You can not reviewing own Product'},
+                status=status.HTTP_200_OK)
 
         already_exists = product.review.filter(user=user).exists()
         if already_exists:
@@ -91,24 +125,18 @@ class ProductReviewAPIView(generics.GenericAPIView):
             comment=data['comment'],
         )
 
-        reviews = product.review.all()
-        count_reviews = reviews.count()
-        product.numReviews = count_reviews
-
-        total = 0
-        for rev in reviews:
-            total += rev.rating
-
-        product.rating = total / count_reviews
-
-        product.save()
+        update_product_review(product)
 
         return Response('Review Added.', status=status.HTTP_201_CREATED)
 
     def patch(self, request, slug=None):
         user = request.user
-        product = Product.objects.get(slug=slug)
-
+        try:
+            product = Product.objects.get(slug=slug)
+        except Product.DoesNotExist:
+            return Response(
+                {'error': 'Product does not exists.'},
+                status=status.HTTP_404_NOT_FOUND)
         data = request.data
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
@@ -118,33 +146,30 @@ class ProductReviewAPIView(generics.GenericAPIView):
             review.rating = data['rating']
             review.comment = data['comment']
             review.save()
+
         except ReviewRating.DoesNotExist:
             return Response({'message': 'Review does not exists.'})
+
+        update_product_review(product)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, slug=None):
         user = request.user
-        product = Product.objects.get(slug=slug)
+
+        try:
+            product = Product.objects.get(slug=slug)
+        except Product.DoesNotExist:
+            return Response(
+                {'error': 'Product does not exists.'},
+                status=status.HTTP_404_NOT_FOUND)
+
         try:
             review = ReviewRating.objects.get(user=user, product=product)
             review.delete()
         except ReviewRating.DoesNotExist:
             return Response({'message': 'Review does not exists.'})
 
-        reviews = product.review.all()
-        count_reviews = reviews.count()
-        product.numReviews = count_reviews
+        update_product_review(product)
 
-        if count_reviews > 0:
-            total = 0
-            for rev in reviews:
-                total += rev.rating
-
-            product.rating = total / count_reviews
-        else:
-            product.rating = 0
-        product.save()
-
-        return Response(
-            'Review was delete.', status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT)

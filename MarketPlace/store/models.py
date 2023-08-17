@@ -3,7 +3,24 @@ import os
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
+from store.api.utils import generate_slug, generate_article
 from accounts.models import SellerShop, User
+
+
+def get_upload_path_main_product_image(instance, filename):
+    return os.path.join(
+        "SellerShops",
+        "owner_%d" % instance.seller_shop.owner.id,
+        "Products", instance.product_name,
+        "product_line_images", filename)
+
+
+def get_upload_path_product_image(instance, filename):
+    return os.path.join(
+        "SellerShops",
+        "owner_%d" % instance.product.seller_shop.owner.id,
+        "Products", instance.product.product_name,
+        "product_line_images", filename)
 
 
 class ManagerQuerySet(models.QuerySet):
@@ -16,8 +33,11 @@ class ManagerQuerySet(models.QuerySet):
 class Product(models.Model):
     """Product model."""
     product_name = models.CharField(max_length=255)
-    slug = models.SlugField(db_index=True)
+    slug = models.SlugField(db_index=True, unique=True)
     description = models.TextField(max_length=500, blank=True)
+    image = models.ImageField(
+        upload_to=get_upload_path_main_product_image,
+        default='static/images/default/default_project.png')
     category = models.ForeignKey(
         'Category', on_delete=models.SET('non category'), blank=True)
     brand = models.ForeignKey(
@@ -48,6 +68,13 @@ class Product(models.Model):
     def get_attribute_value(self):
         return ",".join([str(value) for value in self.attribute_value.all()])
 
+    def save(self, *args, **kwargs):
+        self.slug = generate_slug(self.product_name)
+        self.article = generate_article(
+            self.product_name, self.category.category_name)
+
+        super().save(*args, **kwargs)
+
 
 class Category(models.Model):
     """Category model for products."""
@@ -72,29 +99,19 @@ class Brand(models.Model):
         return self.brand_name
 
 
-def get_upload_path_product_line(instance, filename):
-    return os.path.join(
-        "SellerShops",
-        "owner_%d" % instance.product.seller_shop.owner.id,
-        "Products", instance.product.product_name,
-        "product_line_images", filename)
-
-
 class ProductImage(models.Model):
     """Image for products."""
-    name = models.CharField(max_length=20, blank=True)
-    alternative_name = models.CharField(max_length=20, blank=True)
-    url_image = models.ImageField(
-        upload_to=get_upload_path_product_line,
+    image = models.ImageField(
+        upload_to=get_upload_path_product_image,
         default='static/images/default/default_project.png')
-    product = models.ForeignKey('Product', on_delete=models.CASCADE)
-    is_main_image = models.BooleanField(default=False)
+    product = models.ForeignKey(
+        'Product', on_delete=models.CASCADE, related_name='images')
 
     # additional fields
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.url_image)
+        return str(self.image)
 
 
 class Attribute(models.Model):

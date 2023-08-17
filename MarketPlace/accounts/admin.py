@@ -48,4 +48,3 @@ class SellerShopAdmin(admin.ModelAdmin):
     search_fields = ('owner', 'shop_name', 'phone_number')
     ordering = ('owner', 'created_at')
     prepopulated_fields = {'slug': ('shop_name',)}
-

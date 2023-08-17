@@ -189,6 +189,7 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
             {'success': True, 'message': 'Password reset success.'},
             status=status.HTTP_200_OK)
 
+
 @extend_schema(tags=['UserProfile'])
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """User Profile view for auth user"""

@@ -55,8 +55,7 @@ class BrandAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'product', 'is_main_image', 'url_image',)
-    list_editable = ('is_main_image',)
+    list_display = ('product', 'updated_at',)
 
 
 @admin.register(AttributeValue)
