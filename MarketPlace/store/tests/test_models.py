@@ -2,8 +2,10 @@ from django.test import TestCase
 
 from accounts.models import SellerShop
 from accounts.tests.test_views import create_user, fake
-from ..models import Product, ReviewRating, AttributeValue, Category, Brand, Attribute
-from rest_framework.test import APIClient
+from ..models import (
+    Product, ReviewRating, AttributeValue,
+    Category, Brand, Attribute,
+)
 
 
 def create_product(

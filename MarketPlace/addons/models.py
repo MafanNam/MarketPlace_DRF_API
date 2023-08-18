@@ -14,7 +14,7 @@ def get_upload_path_main_news(instance, filename):
 class News(models.Model):
     """News model."""
     title = models.CharField(max_length=255)
-    image = models.ImageField(max_length=5000, upload_to=get_upload_path_main_news, blank=True)
+    image = models.ImageField(upload_to=get_upload_path_main_news, blank=True)
     text = models.TextField(max_length=1000, blank=True)
 
     # additional fields

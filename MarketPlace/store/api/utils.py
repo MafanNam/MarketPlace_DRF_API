@@ -1,6 +1,5 @@
 import random
 import string
-import datetime
 
 from django.utils.text import slugify
 
@@ -22,27 +21,8 @@ def update_product_review(product):
     product.save()
 
 
-# def generate_article(product_name, category_name):
-#     category_initials = ''.join(
-#         word[0] for word in category_name.split())
-#     product_initials = product_name.replace(' ', '')[:3]
-#     article = f"{category_initials}-{product_initials}{str(uuid.uuid4())[:4]}"
-#
-#     return article
-
-
-# def generate_slug(title: str, pk: int):
-#     from store.models import Product
-#
-#     title = slugify(title)
-#
-#     if Product.objects.filter(slug=title).exists():
-#         title = f"{slugify(title)}-{str(uuid.uuid4())[:4]}"
-#
-#     return title
-
-
-def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
+def random_string_generator(size=10,
+                            chars=string.ascii_lowercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 
@@ -58,7 +38,8 @@ def unique_slug_generator(instance, new_slug=None):
 
     if qs_exists:
         new_slug = "{slug}-{randstr}".format(
-            slug=slug[:max_length - 5], randstr=random_string_generator(size=4))
+            slug=slug[:max_length - 5],
+            randstr=random_string_generator(size=4))
 
         return unique_slug_generator(instance, new_slug=new_slug)
     return slug
@@ -69,6 +50,7 @@ def unique_article_generator(instance):
         word[0] for word in instance.category.category_name.split())
     product_initials = instance.product_name.replace(' ', '')[:3]
 
-    article = f"{category_initials}-{product_initials}{random_string_generator(size=6)}"
+    article = f"{category_initials}-{product_initials}" \
+              f"{random_string_generator(size=6)}"
 
     return article
