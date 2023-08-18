@@ -34,6 +34,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
+        extra_fields.setdefault("username", email.split('@')[0])
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError(_("Superuser must have is_staff=True."))
@@ -125,12 +126,12 @@ class SellerShop(models.Model):
     owner = models.OneToOneField(
         'User', on_delete=models.CASCADE, blank=True, null=True
     )
-    shop_name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(db_index=True)
+    shop_name = models.CharField(max_length=100, blank=True)
+    slug = models.SlugField(db_index=True, unique=True)
     shop_image = models.ImageField(upload_to=get_upload_path_seller_shop)
     description = models.TextField(max_length=500, blank=True)
-    phone_number = models.CharField(max_length=50, unique=True)
-    email = models.EmailField(max_length=100, unique=True)
+    phone_number = models.CharField(max_length=50, blank=True)
+    email = models.EmailField(max_length=100, blank=True)
 
     # additional fields
     created_at = models.DateTimeField(auto_now_add=True)

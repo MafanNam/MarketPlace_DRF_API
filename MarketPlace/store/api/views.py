@@ -21,7 +21,7 @@ from store.models import (
     Product, ReviewRating, Category,
     Brand, AttributeValue
 )
-from MarketPlace.core.permissions import IsAdminOrReadOnly
+from MarketPlace.core.permissions import IsAdminOrReadOnly, IsSellerOrReadOnly
 
 
 class ProductAPIView(viewsets.GenericViewSet,
@@ -29,7 +29,7 @@ class ProductAPIView(viewsets.GenericViewSet,
                      mixins.DestroyModelMixin):
     queryset = Product.objects.is_available()
     lookup_field = 'slug'
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsSellerOrReadOnly]
     """CRUD for Product."""
 
     def get_serializer_class(self):
