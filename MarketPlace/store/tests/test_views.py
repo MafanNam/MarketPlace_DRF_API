@@ -4,10 +4,11 @@ from rest_framework import status
 
 from accounts.models import SellerShop
 from accounts.tests.test_views import create_user, fake
-from ..models import Product, ReviewRating, AttributeValue, Category, Brand, Attribute
+from ..models import (
+    Product, AttributeValue,
+    Category, Brand, Attribute,
+)
 from rest_framework.test import APIClient
-
-from decimal import Decimal
 
 PRODUCT_URL = reverse('store:product-list')
 
@@ -74,7 +75,8 @@ class PrivateStoreApiTests(TestCase):
     #         'product_name': 'hh',
     #         'category': 1, 'brand': 1,
     #         'attribute_value': [{'name': 'attr1'}],
-    #         'article': 'CD3354', 'price_new': Decimal('99.55'), 'stock_qty': 12,
+    #         'article': 'CD3354', 'price_new': Decimal('99.55'),
+    #         'stock_qty': 12,
     #         'image': '',
     #     }
     #     res = self.client.post(PRODUCT_URL, payload, format='json')

@@ -3,8 +3,7 @@ from drf_spectacular.utils import extend_schema
 
 from rest_framework import (
     generics, viewsets, status,
-    mixins, views,
-)
+    mixins, )
 from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
@@ -22,7 +21,7 @@ from store.models import (
     Product, ReviewRating, Category,
     Brand, AttributeValue
 )
-from store.api.permissions import IsAdminOrReadOnly
+from MarketPlace.core.permissions import IsAdminOrReadOnly
 
 
 class ProductAPIView(viewsets.GenericViewSet,

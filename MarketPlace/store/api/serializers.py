@@ -124,7 +124,5 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         validated_data['price_old'] = instance.price_new
         product = super().update(instance, validated_data)
-        
+
         return product
-
-
