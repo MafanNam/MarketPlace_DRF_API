@@ -12,7 +12,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from drf_spectacular.utils import extend_schema
 from drf_spectacular import openapi
 
-from rest_framework import generics, viewsets, status
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -190,19 +190,23 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
             status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=['UserProfile'])
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """User Profile view for auth user"""
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return UserProfile.objects.get(user=self.request.user)
+        return UserProfile.objects.all().select_related('user').get(
+            user=self.request.user)
 
 
+@extend_schema(tags=['SellerShopProfile'])
 class SellerShopProfileView(generics.RetrieveUpdateAPIView):
     """User Profile view for auth user"""
     serializer_class = SellerShopProfileSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return SellerShop.objects.get(owner=self.request.user)
+        return SellerShop.objects.all().select_related('owner').get(
+            owner=self.request.user)
