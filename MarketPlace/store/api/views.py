@@ -29,7 +29,7 @@ class ProductAPIView(viewsets.GenericViewSet,
                      mixins.DestroyModelMixin):
     queryset = Product.objects.is_available()
     lookup_field = 'slug'
-    permission_classes = [IsSellerOrReadOnly]
+    permission_classes = [IsSellerOrReadOnly, IsAuthenticatedOrReadOnly]
     """CRUD for Product."""
 
     def get_serializer_class(self):

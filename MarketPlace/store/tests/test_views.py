@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -14,9 +16,9 @@ PRODUCT_URL = reverse('store:product-list')
 
 
 def create_product(
-        seller_shop=1, product_name='test_name',
-        category=1, brand=1, attribute_value=1,
-        article='CD334', price_new=99, stock_qty=12):
+        seller_shop, category, brand, attribute_value,
+        product_name='test_name', article='CD334',
+        price_new=99, stock_qty=12):
     product = Product.objects.create(
         seller_shop=seller_shop, product_name=product_name,
         category=category, brand=brand,
@@ -42,19 +44,21 @@ class PublicStoreApiTests(TestCase):
 class PrivateStoreApiTests(TestCase):
 
     def setUp(self) -> None:
-        self.user = create_user(
-            first_name='test_first',
-            last_name='test_last',
+        self.user_sel = create_user(
             username=fake.email().split('@')[0],
             email=fake.email(),
-            password='testpass123',
-            phone_number='+343 2424 5345',
             is_active=True,
             role=1,
         )
+        self.user_cus = create_user(
+            username=fake.email().split('@')[0],
+            email=fake.email(),
+            is_active=True,
+            role=2,
+        )
         self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-        self.seller_shop = SellerShop.objects.get(owner=self.user)
+        self.client.force_authenticate(user=self.user_sel)
+        self.seller_shop = SellerShop.objects.get(owner=self.user_sel)
         self.category = Category.objects.create(category_name='test_cat1')
         self.brand = Brand.objects.create(brand_name='test_brand1')
         self.attribute = Attribute.objects.create(name='color')
@@ -74,11 +78,12 @@ class PrivateStoreApiTests(TestCase):
     #     payload = {
     #         'product_name': 'hh',
     #         'category': 1, 'brand': 1,
-    #         'attribute_value': [{'name': 'attr1'}],
-    #         'article': 'CD3354', 'price_new': Decimal('99.55'),
+    #         'attribute_value': [1],
+    #         'article': 'CD3354', 'price_new': 5,
     #         'stock_qty': 12,
-    #         'image': '',
+    #         'image': '..media/static/images/default/default_project.png',
     #     }
     #     res = self.client.post(PRODUCT_URL, payload, format='json')
+    #     print(res.data)
     #
     #     self.assertEqual(res.status_code, status.HTTP_201_CREATED)

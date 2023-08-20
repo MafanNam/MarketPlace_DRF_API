@@ -9,7 +9,7 @@ from ..models import UserProfile, SellerShop
 @receiver(post_save, sender=get_user_model())
 def post_save_create_profile_receiver(sender, instance, created, **kwargs):
     user = sender.objects.get(id=instance.id)
-    if user.role == 2 and not user.is_staff:
+    if not user.is_staff:
         if created:
             UserProfile.objects.create(user=instance)
         else:

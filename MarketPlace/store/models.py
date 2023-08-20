@@ -139,3 +139,6 @@ class ReviewRating(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = ManagerQuerySet.as_manager()
+
+    def __str__(self):
+        return f"{self.name}-{self.rating}"
