@@ -2,8 +2,8 @@ from drf_spectacular import openapi
 from drf_spectacular.utils import extend_schema
 
 from rest_framework import (
-    generics, viewsets, status,
-    mixins, )
+    generics, viewsets, status, mixins
+)
 from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
