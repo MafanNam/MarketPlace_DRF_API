@@ -27,7 +27,9 @@ from MarketPlace.core.permissions import IsAdminOrReadOnly, IsSellerOrReadOnly
 class ProductAPIView(viewsets.GenericViewSet,
                      mixins.UpdateModelMixin,
                      mixins.DestroyModelMixin):
-    queryset = Product.objects.is_available()
+    queryset = Product.objects.is_available().select_related(
+        'category', 'brand', 'seller_shop', 'seller_shop__owner__user_profile'
+    )
     lookup_field = 'slug'
     permission_classes = [IsSellerOrReadOnly, IsAuthenticatedOrReadOnly]
     """CRUD for Product."""

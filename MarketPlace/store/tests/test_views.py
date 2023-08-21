@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -27,12 +25,12 @@ def detail_review_url(product_slug):
 
 def create_product(
         seller_shop, category, brand, attribute_value,
-        product_name='test_name', article='CD334',
+        product_name='test_name',
         price_new=99, stock_qty=12):
     product = Product.objects.create(
         seller_shop=seller_shop, product_name=product_name,
         category=category, brand=brand,
-        article=article, price_new=price_new, stock_qty=stock_qty)
+        price_new=price_new, stock_qty=stock_qty)
     product.attribute_value.set([attribute_value])
 
     return product
@@ -89,7 +87,7 @@ class PrivateStoreApiTests(TestCase):
             'product_name': 'hh',
             'category': 1, 'brand': 1,
             'attribute_value': [1],
-            'article': 'CD3354', 'price_new': 5,
+            'price_new': 5,
             'stock_qty': 12,
         }
         res = self.client.post(PRODUCT_URL, payload, format='json')
@@ -115,6 +113,20 @@ class PrivateStoreApiTests(TestCase):
         self.assertEqual(product[0].product_name, payload['product_name'])
         self.assertTrue(product[0].seller_shop, self.seller_shop)
         self.assertEqual(product[0].price_old, price_old)
+
+    def test_product_delete(self):
+        product = create_product(
+            seller_shop=self.seller_shop, category=self.category,
+            brand=self.brand, attribute_value=self.attribute_value,
+            product_name='test_delete'
+        )
+
+        url = detail_product_url(product.slug)
+        res = self.client.delete(url, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        product = Product.objects.filter(product_name=product.product_name)
+        self.assertFalse(product.exists())
 
     def test_create_review_for_product_except(self):
         payload = {
@@ -168,3 +180,21 @@ class PrivateStoreApiTests(TestCase):
         self.product.refresh_from_db()
         self.assertEqual(self.product.rating, review.rating)
         self.assertEqual(self.product.numReviews, 1)
+
+    def test_delete_review_for_product(self):
+        ReviewRating.objects.create(
+            user=self.user_cus, product=self.product,
+            rating=1,
+        )
+        url = detail_review_url(self.product.slug)
+        self.client.force_authenticate(self.user_cus)
+        res = self.client.delete(url, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+        review = ReviewRating.objects.filter(product=self.product).exists()
+        self.assertFalse(review)
+
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.rating, 0)
+        self.assertEqual(self.product.numReviews, 0)
