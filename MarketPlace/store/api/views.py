@@ -2,8 +2,8 @@ from drf_spectacular import openapi
 from drf_spectacular.utils import extend_schema
 
 from rest_framework import (
-    generics, viewsets, status,
-    mixins, )
+    generics, viewsets, status, mixins
+)
 from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
@@ -21,15 +21,17 @@ from store.models import (
     Product, ReviewRating, Category,
     Brand, AttributeValue
 )
-from MarketPlace.core.permissions import IsAdminOrReadOnly
+from MarketPlace.core.permissions import IsAdminOrReadOnly, IsSellerOrReadOnly
 
 
 class ProductAPIView(viewsets.GenericViewSet,
                      mixins.UpdateModelMixin,
                      mixins.DestroyModelMixin):
-    queryset = Product.objects.is_available()
+    queryset = Product.objects.is_available().select_related(
+        'category', 'brand', 'seller_shop', 'seller_shop__owner__user_profile'
+    )
     lookup_field = 'slug'
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsSellerOrReadOnly, IsAuthenticatedOrReadOnly]
     """CRUD for Product."""
 
     def get_serializer_class(self):

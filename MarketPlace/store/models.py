@@ -67,13 +67,6 @@ class Product(models.Model):
     def get_attribute_value(self):
         return ",".join([str(value) for value in self.attribute_value.all()])
 
-    # def save(self, *args, **kwargs):
-    #     # self.slug = generate_slug(self.product_name)
-    #     self.article = generate_article(
-    #         self.product_name, self.category.category_name)
-    #
-    #     super().save(*args, **kwargs)
-
 
 class Category(models.Model):
     """Category model for products."""
@@ -146,3 +139,6 @@ class ReviewRating(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = ManagerQuerySet.as_manager()
+
+    def __str__(self):
+        return f"{self.name}-{self.rating}"

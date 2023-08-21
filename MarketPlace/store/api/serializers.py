@@ -99,7 +99,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             'seller_shop': {'read_only': True, 'required': False},
-            'image': {'required': True},
+            # 'image': {'required': True},
             'slug': {'read_only': True},
         }
 
