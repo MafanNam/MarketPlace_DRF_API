@@ -22,7 +22,9 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CartItem
-        fields = ('id', 'cart', 'product', 'attribute_value', 'quantity', 'sub_total')
+        fields = (
+            'id', 'cart', 'product', 'attribute_value',
+            'quantity', 'sub_total')
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_sub_total(self, cart_item: CartItem):
@@ -42,7 +44,8 @@ class CartSerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.INT)
     def get_total_price(self, cart: Cart):
         items = cart.items.all()
-        total = sum([item.quantity * item.product.price_new for item in items])
+        total = sum(
+            [item.quantity * item.product.price_new for item in items])
         return total
 
     @extend_schema_field(OpenApiTypes.INT)
@@ -61,7 +64,6 @@ class AddCartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ('id', 'product', 'quantity', 'attribute_value')
-
 
     def save(self, **kwargs):
         cart_id = self.context['cart_id']
@@ -84,3 +86,9 @@ class AddCartItemSerializer(serializers.ModelSerializer):
                 cart_id=cart_id, **self.validated_data)
 
         return self.instance
+
+
+class UpdateCartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = ('id', 'quantity',)

@@ -198,12 +198,12 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         try:
-            user =  UserProfile.objects.all().select_related('user').get(
-            user=self.request.user)
+            user = UserProfile.objects.all().select_related('user').get(
+                user=self.request.user)
             return user
         except UserProfile.DoesNotExist:
-            return Response({'error': 'You are not customer.'}, status=status.HTTP_404_NOT_FOUND)
-
+            return Response({'error': 'You are not customer.'},
+                            status=status.HTTP_404_NOT_FOUND)
 
 
 @extend_schema(tags=['SellerShopProfile'])
@@ -215,7 +215,8 @@ class SellerShopProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         try:
             seller_shop = SellerShop.objects.all().select_related('owner').get(
-            owner=self.request.user)
+                owner=self.request.user)
             return seller_shop
         except SellerShop.DoesNotExist:
-            return Response({'error': 'You are not seller.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'You are not seller.'},
+                            status=status.HTTP_404_NOT_FOUND)
