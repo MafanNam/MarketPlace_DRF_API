@@ -12,7 +12,10 @@ from cart.models import Cart, CartItem
 
 
 class CartViewSet(viewsets.ModelViewSet):
-    queryset = Cart.objects.all()
+    """Cart view for CRUD"""
+    queryset = Cart.objects.all().prefetch_related(
+        'items__product', 'items__product__seller_shop',
+        'items__attribute_value__attribute')
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
 
@@ -40,12 +43,18 @@ class CartViewSet(viewsets.ModelViewSet):
                                  openapi.OpenApiParameter.PATH)]),
 )
 class CartItemViewSet(viewsets.ModelViewSet):
+    """CartItem view for CRUD"""
     permission_classes = [IsAuthenticated]
 
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
-        return CartItem.objects.filter(cart_id=self.kwargs['cart_pk'])
+        return CartItem.objects.filter(
+            cart_id=self.kwargs['cart_pk']).prefetch_related(
+            'product', 'product__seller_shop', 'attribute_value',
+            'attribute_value__attribute',
+        ).select_related('attribute_value', 'attribute_value__attribute',
+                         'product__seller_shop')
 
     def get_serializer_class(self):
         if self.request.method == 'POST':

@@ -15,20 +15,24 @@ class BaseAddonsAPIView(mixins.ListModelMixin,
 
 
 class NewsAPIView(BaseAddonsAPIView):
+    """News view for List, Retrieve"""
     queryset = News.objects.all()
     serializer_class = NewsSerializer
 
 
 class MainAPIView(BaseAddonsAPIView):
+    """Main view for List, Retrieve"""
     queryset = Main.objects.all()
     serializer_class = MainSerializer
 
 
 class LicenceAPIView(BaseAddonsAPIView):
+    """Licence view for List, Retrieve"""
     queryset = Licence.objects.all()
     serializer_class = LicenceSerializer
 
 
 class AboutAPIView(BaseAddonsAPIView):
+    """About view for List, Retrieve"""
     queryset = About.objects.all()
     serializer_class = AboutSerializer
