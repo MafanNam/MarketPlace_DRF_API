@@ -18,7 +18,7 @@ class SimpleProductSerializer(serializers.ModelSerializer):
 class CartItemSerializer(serializers.ModelSerializer):
     product = SimpleProductSerializer(many=False)
     attribute_value = AttributeValueSerializer(many=False)
-    sub_total = serializers.SerializerMethodField()
+    sub_total = serializers.SerializerMethodField(source='get_sub_total')
 
     class Meta:
         model = CartItem
@@ -33,8 +33,8 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
-    total_price = serializers.SerializerMethodField()
-    total_item = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField(source='get_total_price')
+    total_item = serializers.SerializerMethodField(source='get_total_item')
 
     class Meta:
         model = Cart

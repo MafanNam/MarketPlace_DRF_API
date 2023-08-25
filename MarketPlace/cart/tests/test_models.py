@@ -35,7 +35,7 @@ class CartTests(TestCase):
     def test_create_cart(self):
         cart = create_cart(user=self.user_cus)
 
-        self.assertEqual(cart.__str__(), f"{cart.user}-{cart.total_price}")
+        self.assertEqual(cart.__str__(), f"{cart.id}")
         self.assertEqual(cart.user, self.user_cus)
 
     def test_create_cart_item(self):

@@ -5,7 +5,7 @@ from cart.models import CartItem, Cart
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
-    list_display = ('user', 'total_price', 'total_item', 'created_at',)
+    list_display = ('user', 'created_at',)
 
 
 @admin.register(CartItem)
