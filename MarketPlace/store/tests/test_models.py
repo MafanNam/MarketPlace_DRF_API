@@ -50,14 +50,17 @@ class StoreTests(TestCase):
 
         self.assertEqual(product.product_name, 'test_name')
 
-        seller_profile = SellerShop.objects.filter(owner=self.user_sel).exists()
+        seller_profile = SellerShop.objects.filter(
+            owner=self.user_sel).exists()
+
         self.assertTrue(seller_profile)
 
         self.assertEqual(product.category, self.category)
         self.assertEqual(product.brand, self.brand)
         self.assertEqual(
             product.attribute_value.get(product=product), self.attribute_value)
-        self.assertEqual(product.get_attribute_value(), self.attribute_value.__str__())
+        self.assertEqual(
+            product.get_attribute_value(), self.attribute_value.__str__())
 
         review = ReviewRating.objects.create(
             product=product, rating=5, user=self.user_cus

@@ -1,6 +1,5 @@
 from django.test import TestCase
 
-from accounts.models import SellerShop
 from ..models import (
     News, About, Main, Licence,
 )
@@ -27,5 +26,3 @@ class AddonsModelTests(TestCase):
         main = Main.objects.create(name='test', text='description')
 
         self.assertEqual(main.__str__(), 'test')
-
-
