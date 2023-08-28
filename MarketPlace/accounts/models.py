@@ -101,9 +101,6 @@ class UserProfile(models.Model):
         upload_to=get_upload_path_profile,
         default='static/images/default/default_profile.png')
     telebotId = models.CharField(max_length=255, null=True, blank=True)
-    oblast = models.CharField(max_length=50, blank=True, null=True)
-    city = models.CharField(max_length=30, blank=True, null=True)
-    depart_num = models.CharField(max_length=20, blank=True, null=True)
 
     # additional fields
     created_at = models.DateTimeField(auto_now_add=True)

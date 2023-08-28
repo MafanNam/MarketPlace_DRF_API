@@ -2,12 +2,16 @@ from django.contrib import admin
 
 from orders.models import (
     Order, OrderStatus,
-    OrderItem, Tax
+    OrderItem, Tax,
+    ShippingAddress,
 )
 
 
 class OrderItemInLine(admin.TabularInline):
     model = OrderItem
+
+class ShippingAddressInLine(admin.TabularInline):
+    model = ShippingAddress
 
 
 @admin.register(Order)
@@ -16,7 +20,7 @@ class OrderAdmin(admin.ModelAdmin):
         'user', 'order_number', 'payment_method', 'total_price',
         'status', 'is_paid', 'is_delivered')
     list_editable = ('is_paid', 'is_delivered')
-    inlines = (OrderItemInLine,)
+    inlines = (OrderItemInLine, ShippingAddressInLine)
 
 
 @admin.register(OrderItem)
@@ -32,3 +36,10 @@ class OrderStatusAdmin(admin.ModelAdmin):
 @admin.register(Tax)
 class TaxAdmin(admin.ModelAdmin):
     list_display = ('name_tax', 'value_tax')
+
+
+@admin.register(ShippingAddress)
+class ShippingAddressAdmin(admin.ModelAdmin):
+    list_display = ('order', 'country', 'oblast', 'city', 'created_at')
+    ordering = ('created_at',)
+    search_fields = ('country', 'oblast', 'city', 'depart_num',)

@@ -131,14 +131,12 @@ class PrivateUserApiTests(TestCase):
 
     def test_user_profile_particle_update(self):
         """Test POST is not allowed for the user profile endpoint"""
-        payload = {'city': 'new_city'}
+        payload = {'telebotId': 'new_id_bot'}
         res = self.client.patch(PROFILE_URL, payload, format='json')
 
         self.profile.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.profile.city, payload['city'])
-        profile = UserProfile.objects.get(user=self.user)
-        self.assertEqual(self.profile.oblast, profile.oblast)
+        self.assertEqual(self.profile.telebotId, payload['telebotId'])
 
     def test_user_profile_nested_particle_update(self):
         """Test POST is not allowed for the user profile endpoint"""
