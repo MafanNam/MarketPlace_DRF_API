@@ -10,6 +10,7 @@ from orders.models import (
 class OrderItemInLine(admin.TabularInline):
     model = OrderItem
 
+
 class ShippingAddressInLine(admin.TabularInline):
     model = ShippingAddress
 
@@ -30,12 +31,14 @@ class OrderItemAdmin(admin.ModelAdmin):
 
 @admin.register(OrderStatus)
 class OrderStatusAdmin(admin.ModelAdmin):
-    list_display = ('status',)
+    list_display = ('status', 'default')
+    list_editable = ('default',)
 
 
 @admin.register(Tax)
 class TaxAdmin(admin.ModelAdmin):
-    list_display = ('name_tax', 'value_tax')
+    list_display = ('name_tax', 'value_tax', 'default')
+    list_editable = ('default',)
 
 
 @admin.register(ShippingAddress)

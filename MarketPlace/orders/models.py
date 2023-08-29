@@ -4,16 +4,28 @@ from django.db import models
 from store.models import Product
 
 
+def get_status():
+    return OrderStatus.objects.filter(default=True)[0]
+
+
+def get_tax():
+    return Tax.objects.filter(default=True)[0]
+
+
 class Order(models.Model):
-    user = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='order')
+    user = models.ForeignKey(
+        get_user_model(), on_delete=models.PROTECT, related_name='order')
     payment_method = models.CharField(max_length=255)
-    order_number = models.CharField(max_length=255)
+    order_number = models.CharField(max_length=255, unique=True)
     order_note = models.CharField(max_length=255, blank=True)
     shipping_price = models.DecimalField(
-        max_digits=7, decimal_places=2, blank=True)
-    total_price = models.DecimalField(max_digits=7, decimal_places=2)
-    tax = models.ForeignKey('Tax', on_delete=models.PROTECT)
-    status = models.ForeignKey('OrderStatus', on_delete=models.PROTECT)
+        max_digits=7, decimal_places=2, blank=True, default=0)
+    total_price = models.DecimalField(
+        max_digits=7, decimal_places=2, default=0)
+    tax = models.ForeignKey(
+        'Tax', on_delete=models.PROTECT, default=get_tax)
+    status = models.ForeignKey(
+        'OrderStatus', on_delete=models.PROTECT, default=get_status)
     is_paid = models.BooleanField(default=False)
     is_delivered = models.BooleanField(default=False)
 
@@ -31,6 +43,7 @@ class Order(models.Model):
 class Tax(models.Model):
     name_tax = models.CharField(max_length=255)
     value_tax = models.DecimalField(max_digits=5, decimal_places=2)
+    default = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name_tax}-{self.value_tax}"
@@ -38,6 +51,7 @@ class Tax(models.Model):
 
 class OrderStatus(models.Model):
     status = models.CharField(max_length=255)
+    default = models.BooleanField(default=False)
 
     def __str__(self):
         return self.status
