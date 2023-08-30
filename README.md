@@ -4,6 +4,11 @@ Market Place API project.
 ## Description
 
 
+## Virtual env
+```bash
+$ virtualenv env
+$ source env/bin/activate
+```
 
 ## Installation Python Packages
 
