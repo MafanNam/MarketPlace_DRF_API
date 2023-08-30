@@ -4,10 +4,6 @@ from django.db import models
 from store.models import Product
 
 
-# def get_status():
-#     return OrderStatus.objects.filter(default=True)[0]
-
-
 class Tax(models.Model):
     name_tax = models.CharField(max_length=255)
     value_tax = models.DecimalField(max_digits=5, decimal_places=2)
