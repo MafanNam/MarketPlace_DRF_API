@@ -7,7 +7,7 @@ from rest_framework import serializers
 from cart.models import CartItem, Cart
 from cart.api.serializers import SimpleProductSerializer
 from orders.models import (
-    Order, OrderItem, OrderStatus,
+    Order, OrderItem,
     ShippingAddress, Tax,
 )
 from store.models import Product
@@ -16,12 +16,6 @@ from store.models import Product
 class TaxSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tax
-        exclude = ('id', 'default',)
-
-
-class OrderStatusSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderStatus
         exclude = ('id', 'default',)
 
 
@@ -36,7 +30,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     order_item = OrderItemSerializer(many=True, read_only=True)
     tax = TaxSerializer(many=False, read_only=True)
-    status = OrderStatusSerializer(many=False, read_only=True)
 
     class Meta:
         model = Order
@@ -92,5 +85,5 @@ class CreateOrderSerializer(serializers.ModelSerializer):
             order.order_number = f"{order_number.upper()}{now.strftime('%Y%m%H%M%S')}"
             order.save()
 
-            Cart.objects.filter(id=cart_id).delete()
+            # Cart.objects.filter(id=cart_id).delete()
             return order

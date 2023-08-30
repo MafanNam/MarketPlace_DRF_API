@@ -1,8 +1,7 @@
 from django.contrib import admin
 
 from orders.models import (
-    Order, OrderStatus,
-    OrderItem, Tax,
+    Order, OrderItem, Tax,
     ShippingAddress,
 )
 
@@ -27,12 +26,6 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ('order', 'product', 'quantity', 'created_at')
-
-
-@admin.register(OrderStatus)
-class OrderStatusAdmin(admin.ModelAdmin):
-    list_display = ('status', 'default')
-    list_editable = ('default',)
 
 
 @admin.register(Tax)
