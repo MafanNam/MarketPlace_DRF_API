@@ -26,13 +26,14 @@ jobs:
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install virtualenv
-        python -m virtualenv venv
+        python -m venv venv
         source venv/bin/activate
         pip install -r requirements.txt
 
+
     - name: Run Tests
       run: |
+        source venv/bin/activate
         cd ./MarketPlace/
         python manage.py test
 
