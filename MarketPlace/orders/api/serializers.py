@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.db import transaction
+from drf_spectacular.utils import extend_schema_field
 
 from rest_framework import serializers
 
@@ -42,6 +43,7 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = '__all__'
 
+    @extend_schema_field(ShippingAddressSerializer)
     def get_shipping_address(self, obj):
         try:
             address = ShippingAddressSerializer(obj.address, many=False).data
