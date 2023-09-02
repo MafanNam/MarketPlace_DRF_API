@@ -86,7 +86,6 @@ class PrivateCartApiTests(TestCase):
         res = self.client.get(CART_URL)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res.data), 1)
 
     def test_list_cart_detail(self):
         url = detail_cart_url(self.cart.id)

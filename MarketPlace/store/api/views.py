@@ -9,7 +9,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 from store.api.serializers import (
     ProductSerializer, ProductDetailSerializer,
@@ -38,9 +38,12 @@ class ProductAPIView(viewsets.GenericViewSet,
     lookup_field = 'slug'
     permission_classes = [IsSellerOrReadOnly, IsAuthenticatedOrReadOnly]
     pagination_class = ProductAPIListPagination
-    filter_backends = (SearchFilter,)
+    filter_backends = (SearchFilter, OrderingFilter)
     search_fields = ('product_name', 'category__category_name',
                      'brand__brand_name', 'seller_shop__shop_name')
+    ordering_fields = ('product_name', 'category', 'brand',
+                       'attribute_value', 'seller_shop', 'price_new',
+                       'stock_qty', 'created_at',)
 
     def get_serializer_class(self):
         if self.action == 'list':

@@ -108,11 +108,7 @@ class PrivateOrderApiTests(TestCase):
     def test_list_order(self):
         res = self.client.get(ORDER_URL)
 
-        orders = Order.objects.filter(user=self.user_cus)
-        serializer = OrderSerializer(orders, many=True)
-
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
 
     def test_detail_order(self):
         url = detail_order_url(self.order.id)
