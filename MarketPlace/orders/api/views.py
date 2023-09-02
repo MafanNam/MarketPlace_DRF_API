@@ -4,6 +4,8 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+
+from orders.api.paginations import OrderAPIListPagination
 # from rest_framework.decorators import action
 
 # from MarketPlace.core.permissions import IsSellerShop
@@ -18,6 +20,7 @@ from datetime import datetime
 class OrderViewSet(viewsets.ModelViewSet):
     """Order view"""
     http_method_names = ['get', 'post', 'patch', 'delete']
+    pagination_class = OrderAPIListPagination
 
     def get_permissions(self):
         if self.request.method in ['PATCH']:
@@ -37,7 +40,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_staff:
-            return Order.objects.all()
+            return Order.objects.all().order_by('-created_at')
         return Order.objects.filter(user=user)
 
     def get_serializer_class(self):
