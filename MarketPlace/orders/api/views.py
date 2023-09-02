@@ -1,7 +1,8 @@
-from drf_spectacular import openapi
 from drf_spectacular.utils import extend_schema
+
+from django.utils.timezone import now
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
@@ -16,8 +17,12 @@ from datetime import datetime
 
 class OrderViewSet(viewsets.ModelViewSet):
     """Order view"""
-    permission_classes = (IsAuthenticated,)
     http_method_names = ['get', 'post', 'patch', 'delete']
+
+    def get_permissions(self):
+        if self.request.method in ['PATCH']:
+            return [IsAdminUser()]
+        return [IsAuthenticated()]
 
     def create(self, request, *args, **kwargs):
         context = {'user': self.request.user}
@@ -27,7 +32,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         order = serializer.save()
         serializer = OrderSerializer(order)
 
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
         user = self.request.user
@@ -43,27 +48,24 @@ class OrderViewSet(viewsets.ModelViewSet):
         return OrderSerializer
 
 
-@extend_schema(
-    parameters=[openapi.OpenApiParameter(
-        'id', openapi.OpenApiTypes.INT, openapi.OpenApiParameter.PATH)],
-    tags=['OrderSeller'])
-class OrderPayViewSet(viewsets.ViewSet):
+class OrderPayViewSet(viewsets.views.APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = None
 
-    @action(
-        methods=['PATCH'], detail=True, url_path=r"pay", url_name='order_pay')
-    def updateOrderToPaid(self, request, pk=None):
+    def patch(self, request, pk=None):
         try:
-            order = Order.objects.get(pk=pk)
+            order = Order.objects.get(
+                pk=pk, user=self.request.user)
         except Order.DoesNotExist:
             return Response(
                 {'error': 'Order with this id does not exist.'},
                 status=status.HTTP_404_NOT_FOUND)
-
-        order.is_paid = True
-        order.paid_at = datetime.now()
-        order.save()
+        if not order.is_paid:
+            order.is_paid = True
+            order.paid_at = datetime.now()
+            order.save()
+        else:
+            return Response({'error': 'Order already paid.'})
 
         return Response('Order was paid.')
 
@@ -95,7 +97,7 @@ class SellerOrderViewSet(viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_404_NOT_FOUND)
         if order.is_paid:
             order.is_delivered = True
-            order.delivered_at = datetime.now()
+            order.delivered_at = now()
             order.save()
 
             return Response('Order was delivered')

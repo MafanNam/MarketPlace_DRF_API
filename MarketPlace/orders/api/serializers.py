@@ -122,4 +122,5 @@ class CreateOrderSerializer(serializers.ModelSerializer):
 class UpdateOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        exclude = ('id', 'order_number', 'user', 'created_at', 'updated_at',)
+        fields = ('status',)
+        # exclude = ('id', 'order_number', 'user', 'created_at', 'updated_at',)
