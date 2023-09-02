@@ -4,6 +4,7 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.filters import SearchFilter
 
 from orders.api.paginations import OrderAPIListPagination
 # from rest_framework.decorators import action
@@ -21,6 +22,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     """Order view"""
     http_method_names = ['get', 'post', 'patch', 'delete']
     pagination_class = OrderAPIListPagination
+    filter_backends = (SearchFilter,)
+    search_fields = ('order_number', 'status')
 
     def get_permissions(self):
         if self.request.method in ['PATCH']:

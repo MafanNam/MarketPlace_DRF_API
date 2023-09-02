@@ -9,6 +9,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
+from rest_framework.filters import SearchFilter
 
 from store.api.serializers import (
     ProductSerializer, ProductDetailSerializer,
@@ -26,15 +27,20 @@ from store.api.paginations import ProductAPIListPagination
 
 
 class ProductAPIView(viewsets.GenericViewSet,
+                     mixins.ListModelMixin,
                      mixins.UpdateModelMixin,
                      mixins.DestroyModelMixin):
     """CRUD for Product."""
-    queryset = Product.objects.is_available().select_related(
+    queryset = Product.objects.is_available().order_by(
+        '-created_at').select_related(
         'category', 'brand', 'seller_shop', 'seller_shop__owner__user_profile'
     )
     lookup_field = 'slug'
     permission_classes = [IsSellerOrReadOnly, IsAuthenticatedOrReadOnly]
     pagination_class = ProductAPIListPagination
+    filter_backends = (SearchFilter,)
+    search_fields = ('product_name', 'category__category_name',
+                     'brand__brand_name', 'seller_shop__shop_name')
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -44,13 +50,6 @@ class ProductAPIView(viewsets.GenericViewSet,
         elif self.action in ('create', 'update', 'partial_update',):
             return ProductCreateSerializer
         return ProductSerializer
-
-    def list(self, request):
-        """List products."""
-        serializer = self.get_serializer(
-            self.queryset.order_by('-created_at'), many=True)
-
-        return Response(serializer.data)
 
     def retrieve(self, request, slug=None):
         """Detail product."""
