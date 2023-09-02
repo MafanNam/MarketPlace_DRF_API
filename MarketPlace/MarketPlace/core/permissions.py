@@ -21,9 +21,9 @@ class IsSellerOrReadOnly(permissions.BasePermission):
         )
 
 
-class IsSellerShopOrderProduct(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
+class IsSellerShop(permissions.BasePermission):
+    def has_permission(self, request, view):
         return bool(
             request.user and request.user.is_authenticated and
-            obj.order_item.product.seller_shop.owner == request.user
+            request.user.role == 1 or request.user.is_staff
         )

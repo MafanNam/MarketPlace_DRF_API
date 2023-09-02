@@ -8,9 +8,9 @@ app_name = 'orders'
 
 router = routers.DefaultRouter()
 router.register('', views.OrderViewSet, basename='orders')
-router.register('seller', views.SellerOrderViewSet, basename='seller_order')
 
 urlpatterns = [
+    path('<int:pk>/pay/', views.OrderPayViewSet.as_view(), name='order_pay'),
     path('', include(router.urls)),
-    path('<int:pk>/pay/', views.OrderPayViewSet.as_view(), name='order_pay')
+
 ]
