@@ -19,3 +19,11 @@ class IsSellerOrReadOnly(permissions.BasePermission):
             request.user and request.user.is_authenticated and
             obj.seller_shop.owner == request.user
         )
+
+
+class IsSellerShop(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.user and request.user.is_authenticated and
+            request.user.role == 1 or request.user.is_staff
+        )

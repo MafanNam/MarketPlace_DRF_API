@@ -35,9 +35,9 @@ class UserAdmin(UserAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'telebotId', 'oblast', 'created_at')
+    list_display = ('user', 'telebotId', 'created_at')
     list_filter = ('user', 'created_at')
-    search_fields = ('user', 'oblast', 'city')
+    search_fields = ('user', 'city')
     ordering = ('user', 'created_at')
 
 

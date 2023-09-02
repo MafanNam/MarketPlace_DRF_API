@@ -128,7 +128,8 @@ class RequestResetPasswordEmail(generics.GenericAPIView):
                 'accounts:password_reset_confirm',
                 kwargs={'uidb64': uidb64, 'token': token})
             abs_url = 'http://' + current_site + relative_link
-            email_body = 'Hello, \n Use link below to resset your password. \n' + abs_url
+            email_body = 'Hello, \n Use link below to resset your password.' \
+                         ' \n' + abs_url
 
             data = {'email_body': email_body,
                     'email_subject': 'Resset your Password',
@@ -136,7 +137,8 @@ class RequestResetPasswordEmail(generics.GenericAPIView):
             Util.send_verification_email(data)
 
             return Response(
-                {'success': 'We have sent you a link to resset your password.'},
+                {'success': 'We have sent you a link to'
+                            ' resset your password.'},
                 status=status.HTTP_200_OK)
 
         return Response(
