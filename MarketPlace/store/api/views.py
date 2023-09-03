@@ -36,7 +36,7 @@ class ProductAPIView(viewsets.GenericViewSet,
         'category', 'brand', 'seller_shop', 'seller_shop__owner__user_profile'
     )
     lookup_field = 'slug'
-    permission_classes = [IsSellerOrReadOnly, IsAuthenticatedOrReadOnly]
+    permission_classes = [IsSellerOrReadOnly]
     pagination_class = ProductAPIListPagination
     filter_backends = (SearchFilter, OrderingFilter)
     search_fields = ('product_name', 'category__category_name',
