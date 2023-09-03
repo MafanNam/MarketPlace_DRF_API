@@ -9,6 +9,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 from store.api.serializers import (
     ProductSerializer, ProductDetailSerializer,
@@ -22,17 +23,27 @@ from store.models import (
     Brand, AttributeValue
 )
 from MarketPlace.core.permissions import IsAdminOrReadOnly, IsSellerOrReadOnly
+from store.api.paginations import ProductAPIListPagination
 
 
 class ProductAPIView(viewsets.GenericViewSet,
+                     mixins.ListModelMixin,
                      mixins.UpdateModelMixin,
                      mixins.DestroyModelMixin):
-    queryset = Product.objects.is_available().select_related(
+    """CRUD for Product."""
+    queryset = Product.objects.is_available().order_by(
+        '-created_at').select_related(
         'category', 'brand', 'seller_shop', 'seller_shop__owner__user_profile'
     )
     lookup_field = 'slug'
-    permission_classes = [IsSellerOrReadOnly, IsAuthenticatedOrReadOnly]
-    """CRUD for Product."""
+    permission_classes = [IsSellerOrReadOnly]
+    pagination_class = ProductAPIListPagination
+    filter_backends = (SearchFilter, OrderingFilter)
+    search_fields = ('product_name', 'category__category_name',
+                     'brand__brand_name', 'seller_shop__shop_name')
+    ordering_fields = ('product_name', 'category', 'brand',
+                       'attribute_value', 'seller_shop', 'price_new',
+                       'stock_qty', 'created_at',)
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -42,13 +53,6 @@ class ProductAPIView(viewsets.GenericViewSet,
         elif self.action in ('create', 'update', 'partial_update',):
             return ProductCreateSerializer
         return ProductSerializer
-
-    def list(self, request):
-        """List products."""
-        serializer = self.get_serializer(
-            self.queryset.order_by('-created_at'), many=True)
-
-        return Response(serializer.data)
 
     def retrieve(self, request, slug=None):
         """Detail product."""

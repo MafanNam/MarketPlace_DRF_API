@@ -2,8 +2,10 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from drf_spectacular import openapi
 
 from rest_framework import viewsets
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 
+from cart.api.paginations import CartAPIListPagination
 from cart.api.serializers import (
     CartSerializer, AddCartItemSerializer,
     CartItemSerializer, UpdateCartItemSerializer,
@@ -13,11 +15,13 @@ from cart.models import Cart, CartItem
 
 class CartViewSet(viewsets.ModelViewSet):
     """Cart view for CRUD"""
-    queryset = Cart.objects.all().prefetch_related(
+    queryset = Cart.objects.all().order_by('-created_at').prefetch_related(
         'items__product', 'items__product__seller_shop',
         'items__attribute_value__attribute')
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CartAPIListPagination
+    filter_backends = (OrderingFilter,)
 
     http_method_names = ['get', 'post', 'delete']
 

@@ -1,9 +1,12 @@
 # from drf_spectacular.utils import extend_schema
 
-# from django.utils.timezone import now
+from django.utils.timezone import now
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.filters import SearchFilter, OrderingFilter
+
+from orders.api.paginations import OrderAPIListPagination
 # from rest_framework.decorators import action
 
 # from MarketPlace.core.permissions import IsSellerShop
@@ -12,12 +15,16 @@ from orders.api.serializers import (
     UpdateOrderSerializer)
 from orders.models import Order
 
-from datetime import datetime
-
 
 class OrderViewSet(viewsets.ModelViewSet):
     """Order view"""
     http_method_names = ['get', 'post', 'patch', 'delete']
+    pagination_class = OrderAPIListPagination
+    filter_backends = (SearchFilter, OrderingFilter)
+    search_fields = ('order_number', 'status')
+    ordering_fields = (
+        'user', 'shipping_price', 'total_price',
+        'tax', 'status', 'created_at',)
 
     def get_permissions(self):
         if self.request.method in ['PATCH']:
@@ -37,8 +44,12 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_staff:
-            return Order.objects.all()
-        return Order.objects.filter(user=user)
+            return Order.objects.all().order_by('-created_at').select_related(
+                'user', 'tax').prefetch_related(
+                'order_item', 'order_item__product', 'address')
+        return Order.objects.filter(user=user).order_by(
+            '-created_at').select_related('user', 'tax').prefetch_related(
+            'order_item', 'order_item__product', 'address')
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -62,7 +73,7 @@ class OrderPayViewSet(viewsets.views.APIView):
                 status=status.HTTP_404_NOT_FOUND)
         if not order.is_paid:
             order.is_paid = True
-            order.paid_at = datetime.now()
+            order.paid_at = now()
             order.save()
         else:
             return Response({'error': 'Order already paid.'})
